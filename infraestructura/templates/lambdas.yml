@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Crea una lambda para el microservicio de management event
+
+Parameters:
+  Enviroment:
+    Type: String
+    Description: "Texto adicional para el nombre del bucket (ej: dev, prod, featureX)"
+    Default: "dev"
+    AllowedValues: ["dev", "qc", "pdn"] 
+ 
+ # Definicion del Rol para la funcion Agregar/modificar/eliminar evento
+Resources:
+
+  EventManagementLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com' # Permite que Lambda asuma este rol
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'EventLambdaModificationPolicy' # Nombre unico para la politica de EventManagement
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/EventLambdaModificationPolicy*"  # Permisos especificos de logs para esta funcion
+              - Effect: 'Allow'
+                Action:
+                  - 'dynamodb:PutItem'
+                  - 'dynamodb:UpdateItem'
+                  - 'dynamodb:DeleteItem'
+                  - 'dynamodb:Query'
+                  - 'dynamodb:Scan'
+
+  EventManagementLambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/EventManagementLambda"  # Nombre especifico del grupo de logs
+      RetentionInDays: 30  # Retener logs por 30 dias
+
+  EventManagementLambdaFunction: 
+    Type: 'AWS::Lambda::Function'
+    DependsOn: EventManagementLambdaLogGroup  # Asegura que el log group existe antes que la Lambda
+    Properties:
+      FunctionName: 'EventManagementLambda' # Nombre fijo de la funcion
+      Handler: 'events_management_lambda.lambda_handler'
+      Runtime: python3.12  # Version actualizada de Python
+      Code:
+        S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Enviroment}"  # Bucket con nombre unico por cuenta/region
+        S3Key: "events_management_lambda.zip"  # Archivo ZIP con el codigo fuente
+      MemorySize: 128  # Memoria asignada en MB
+      Timeout: 20  # Timeout en segundos
+      Role: !GetAtt EventManagementLambdaRole.Arn  # Referencia al rol IAM creado anteriormente
+      Environment: # Variables de entorno para configuracion dinamica
+        Variables:
+          TABLE_NAME: !Ref EventManagementTable
+          REGION: !Ref AWS::Region
+          LOG_LEVEL: INFO  # Nivel de logging configurable
