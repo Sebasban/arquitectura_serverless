@@ -10,12 +10,17 @@ Parameters:
     Default: "dev"
     AllowedValues: ["dev", "qc", "pdn"]
 
+  Region:
+    Type: String
+    Description: "Define la region del recurso para el nombre"
+    Default: "us-east-1"
+
 Resources:
 
   LambdaCodeBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Enviroment}"
+      BucketName: !Sub "lambda-code-${AWS::AccountId}-${Region}-${Enviroment}"
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
