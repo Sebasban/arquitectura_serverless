@@ -26,11 +26,11 @@ jobs:
         run: |
           aws s3 sync infraestructura/templates s3://lambda-code-200093566387-us-east-1-dev/infra_templates --delete
 
-      - name: Deploy stages (cloudformation package)
+      - name: Deploy root stack
         run: |
           aws cloudformation deploy \
             --stack-name nequi-root-dev \
-            --template-file main.yml \
+            --template-file infraestructura/stacks/main.yml \
             --parameter-overrides \
               TemplatesBaseUrl="https://s3.amazonaws.com/lambda-code-200093566387-us-east-1-dev/infra_templates" \
               Environment=dev \
@@ -40,3 +40,4 @@ jobs:
               ApiKeyValue="" \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
+
