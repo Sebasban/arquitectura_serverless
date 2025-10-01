@@ -2,7 +2,7 @@ name: Deploy Infra con CloudFormation
 
 on:
   workflow_run:
-    workflows: ["deploy_application.yml"]  # nombre exacto de A.yml
+    workflows: ["Deploy Infra con CloudFormation"]  # nombre exacto de A.yml
     types:
       - completed
 
