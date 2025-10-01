@@ -15,7 +15,7 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
-      - name: Configurar credenciales AWS
+      - name: Configurar credenciales AWS 
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
