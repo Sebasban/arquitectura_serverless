@@ -1,84 +1,147 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: HTTP API (API Gateway v2) integrado con una Lambda existente
+Description: REST API -> Lambda proxy (/event con POST, PUT, DELETE, GET) + API Key
 
 Parameters:
-  ProjectName:
-    Type: String
-    Default: events-app
   LambdaFunctionArn:
     Type: String
 
+  ApiKeyName:
+    Type: String
+    Default: events-api-key
+    Description: Nombre del API Key a crear
+
+  ApiKeyValue:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: "(Opcional) Valor fijo del API Key. Déjalo vacío para que AWS lo genere."
+
+Conditions:
+  HasApiKeyValue: !Not [!Equals [!Ref ApiKeyValue, ""]]
+
 Resources:
-  # HTTP API (API Gateway v2)
-  HttpApi:
-    Type: AWS::ApiGatewayV2::Api
+  ApiGatewayRestApi:
+    Type: 'AWS::ApiGateway::RestApi'
     Properties:
-      Name: !Sub ${ProjectName}-http-api-create-events
-      ProtocolType: HTTP
-      CorsConfiguration:
-        AllowOrigins: ['*']
-        AllowMethods: ['POST','PUT','DELETE','OPTIONS']
-        AllowHeaders: ['content-type','authorization']
+      Name: 'EventManagementAPI'
+      Description: 'API Gateway para CRUD de Event Management y User Management Lambdas'
 
-  # Integración Lambda
-  ApiIntegration:
-    Type: AWS::ApiGatewayV2::Integration
+  # Recurso /event
+  ApiGatewayResourceEvent:
+    Type: 'AWS::ApiGateway::Resource'
     Properties:
-      ApiId: !Ref HttpApi
-      IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations
-      PayloadFormatVersion: '2.0'
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: 'event'
+      RestApiId: !Ref ApiGatewayRestApi
 
-  # Rutas
-  PostAggRoute:
-    Type: AWS::ApiGatewayV2::Route
+  # Métodos (requieren API Key)
+  ApiGatewayMethodEventPost:
+    Type: 'AWS::ApiGateway::Method'
     Properties:
-      ApiId: !Ref HttpApi
-      RouteKey: 'POST /agg'
-      Target: !Sub integrations/${ApiIntegration}
+      AuthorizationType: 'NONE'
+      ApiKeyRequired: true
+      HttpMethod: 'POST'
+      ResourceId: !Ref ApiGatewayResourceEvent
+      RestApiId: !Ref ApiGatewayRestApi
+      Integration:
+        IntegrationHttpMethod: 'POST'
+        Type: 'AWS_PROXY'
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations'
 
-  PutModifyRoute:
-    Type: AWS::ApiGatewayV2::Route
+  ApiGatewayMethodEventGet:
+    Type: 'AWS::ApiGateway::Method'
     Properties:
-      ApiId: !Ref HttpApi
-      RouteKey: 'PUT /modify'
-      Target: !Sub integrations/${ApiIntegration}
+      AuthorizationType: 'NONE'
+      ApiKeyRequired: true
+      HttpMethod: 'GET'
+      ResourceId: !Ref ApiGatewayResourceEvent
+      RestApiId: !Ref ApiGatewayRestApi
+      Integration:
+        IntegrationHttpMethod: 'POST'
+        Type: 'AWS_PROXY'
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations'
 
-  DeleteDeleteRoute:
-    Type: AWS::ApiGatewayV2::Route
+  ApiGatewayMethodEventPut:
+    Type: 'AWS::ApiGateway::Method'
     Properties:
-      ApiId: !Ref HttpApi
-      RouteKey: 'DELETE /delete'
-      Target: !Sub integrations/${ApiIntegration}
+      AuthorizationType: 'NONE'
+      ApiKeyRequired: true
+      HttpMethod: 'PUT'
+      ResourceId: !Ref ApiGatewayResourceEvent
+      RestApiId: !Ref ApiGatewayRestApi
+      Integration:
+        IntegrationHttpMethod: 'POST'
+        Type: 'AWS_PROXY'
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations'
 
-  # Stage
-  ApiStage:
-    Type: AWS::ApiGatewayV2::Stage
+  ApiGatewayMethodEventDelete:
+    Type: 'AWS::ApiGateway::Method'
     Properties:
-      ApiId: !Ref HttpApi
-      StageName: v1
-      AutoDeploy: true
+      AuthorizationType: 'NONE'
+      ApiKeyRequired: true
+      HttpMethod: 'DELETE'
+      ResourceId: !Ref ApiGatewayResourceEvent
+      RestApiId: !Ref ApiGatewayRestApi
+      Integration:
+        IntegrationHttpMethod: 'POST'
+        Type: 'AWS_PROXY'
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations'
 
-  # Permiso para que API Gateway invoque la Lambda
-  ApiInvokePermission:
-    Type: AWS::Lambda::Permission
+  # Deployment + Stage prod (rápido)
+  ApiGatewayDeployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    DependsOn:
+      - ApiGatewayMethodEventPost
+      - ApiGatewayMethodEventPut
+      - ApiGatewayMethodEventDelete
+      - ApiGatewayMethodEventGet
     Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      StageName: 'prod'
+
+  # API Key
+  EventsApiKey:
+    Type: 'AWS::ApiGateway::ApiKey'
+    Properties:
+      Name: !Ref ApiKeyName
+      Enabled: true
+      # Si pasas un valor, se usa; si no, lo genera AWS
+      Value: !If [HasApiKeyValue, !Ref ApiKeyValue, !Ref 'AWS::NoValue']
+
+  # Usage Plan y asociación
+  EventsUsagePlan:
+    Type: 'AWS::ApiGateway::UsagePlan'
+    DependsOn:
+      - ApiGatewayDeployment 
+    Properties:
+      UsagePlanName: 'events-usage-plan'
+      ApiStages:
+        - ApiId: !Ref ApiGatewayRestApi
+          Stage: 'prod'
+
+  EventsUsagePlanKey:
+    Type: 'AWS::ApiGateway::UsagePlanKey'
+    Properties:
+      KeyId: !Ref EventsApiKey
+      KeyType: 'API_KEY'
+      UsagePlanId: !Ref EventsUsagePlan
+
+  # Permitir invocación desde este API
+  LambdaInvokePermissionEvent:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
       FunctionName: !Ref LambdaFunctionArn
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      # Permite invocaciones desde cualquier método/ruta del API y cualquier stage (por simplicidad)
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*
+      Principal: 'apigateway.amazonaws.com'
+      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*"
 
 Outputs:
-  ApiBaseUrl:
-    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/v1
-    Description: URL base del API
-  PostAggEndpoint:
-    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/v1/agg
-    Description: Endpoint POST /agg
-  PutModifyEndpoint:
-    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/v1/modify
-    Description: Endpoint PUT /modify
-  DeleteDeleteEndpoint:
-    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/v1/delete
-    Description: Endpoint DELETE /delete
+  ApiGatewayUrl:
+    Description: "URL base"
+    Value: !Sub "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  EventEndpoint:
+    Description: "Endpoint /event (POST, PUT, DELETE, GET)"
+    Value: !Sub "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod/event"
+  ApiKeyId:
+    Description: "ID del API Key (usa este ID para leer el valor si no lo fijaste)"
+    Value: !Ref EventsApiKey
