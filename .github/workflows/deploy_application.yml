@@ -20,6 +20,9 @@ jobs:
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::200093566387:role/github-deployer-role
+      
+      - name: Comprimir codido lambda
+        run: zip events_lambda.py.zip micro-servicios/agregar-evento
 
       - name: Subir templates a S3
         run: |
@@ -27,4 +30,4 @@ jobs:
 
       - name: Subir codigo lambda a S3
         run: |
-          aws s3 sync micro-servicios/agregar-evento s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication --delete
+          aws s3 sync micro-servicios/agregar-evento/events_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication --delete
