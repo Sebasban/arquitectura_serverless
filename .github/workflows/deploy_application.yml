@@ -25,7 +25,7 @@ jobs:
         run: zip events_lambda.py.zip micro-servicios/agregar-evento
 
       - name: donde queda el archivo
-        run: ls
+        run: pwd
 
       - name: Subir templates a S3
         run: |
