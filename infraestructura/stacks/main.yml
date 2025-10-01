@@ -33,13 +33,13 @@ Parameters:
 
 Resources:
 
-  S3Stack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub "${TemplatesBaseUrl}/s3.yml"
-      Parameters:
-        Enviroment: !Ref Environment  # Nota: param escrito así en tu template s3.yml
-        Region: !Ref Region
+  #S3Stack:
+  #  Type: AWS::CloudFormation::Stack
+  #  Properties:
+  #    TemplateURL: !Sub "${TemplatesBaseUrl}/s3.yml"
+  #    Parameters:
+  #      Enviroment: !Ref Environment  # Nota: param escrito así en tu template s3.yml
+  #      Region: !Ref Region
 
   DynamoDBStack:
     Type: AWS::CloudFormation::Stack
