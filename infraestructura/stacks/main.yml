@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Main stack: DynamoDB + Lambda + API Gateway (nested stacks)
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, qc, pdn]
+    Description: Entorno a propagar a la Lambda (coincide con lambdas.yml)
+  EventTableName:
+    Type: String
+    Default: EventTable
+    Description: Nombre de la tabla a usar en la Lambda (coincide con dynamodb.yml)
+  ApiKeyName:
+    Type: String
+    Default: events-api-key
+    Description: Nombre del API Key a crear (coincide con api-gateway.yml)
+  ApiKeyValue:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: "(Opcional) Valor fijo del API Key. Déjalo vacío para que AWS lo genere."
+
+Resources:
+  # 1) DynamoDB
+  DynamoDBStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      # Con "package", estas rutas locales se reemplazan por S3 automáticamente
+      TemplateURL: ../templates/dynamodb.yml
+
+  # 2) Lambda (depende de la tabla)
+  LambdasStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DynamoDBStack
+    Properties:
+      TemplateURL: ../templates/lambdas.yml
+      Parameters:
+        Environment: !Ref Environment
+        EventTableName: !Ref EventTableName
+
+  # 3) API Gateway (depende de la Lambda)
+  ApiGatewayStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: LambdasStack
+    Properties:
+      TemplateURL: ../templates/api-gateway.yml
+      Parameters:
+        LambdaFunctionArn: !GetAtt LambdasStack.Outputs.LambdaArn
+        ApiKeyName: !Ref ApiKeyName
+        ApiKeyValue: !Ref ApiKeyValue
+
+Outputs:
+  ApiGatewayUrl:
+    Description: URL base del API
+    Value: !GetAtt ApiGatewayStack.Outputs.ApiGatewayUrl
+  EventEndpoint:
+    Description: Endpoint /event
+    Value: !GetAtt ApiGatewayStack.Outputs.EventEndpoint
+  ApiKeyId:
+    Description: ID del API Key
+    Value: !GetAtt ApiGatewayStack.Outputs.ApiKeyId
+  LambdaArn:
+    Description: ARN de la Lambda desplegada
+    Value: !GetAtt LambdasStack.Outputs.LambdaArn

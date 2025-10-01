@@ -1,0 +1,28 @@
+name: Deploy Infra con CloudFormation
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  id-token: write   # necesario para OIDC
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::200093566387:role/github-deployer-role
+
+      - name: Subir archivos a S3 (sobrescribe si existen)
+        run: |
+          aws s3 sync ./infraestructura/templates s3://lambda-code-200093566387-us-east-1-dev/infra_templates --delete
+
+      
