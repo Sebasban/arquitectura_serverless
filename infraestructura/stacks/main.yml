@@ -1,65 +1,67 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: Main stack: DynamoDB + Lambda + API Gateway (nested stacks)
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Root stack para desplegar S3 -> DynamoDB -> Lambdas -> API Gateway como nested stacks.
 
 Parameters:
+  TemplatesBaseUrl:
+    Type: String
+    Description: >
+      URL base (sin el archivo) donde están las plantillas hijas en S3.
+      Ej: https://s3.amazonaws.com/mi-bucket/cfn (sin la / final)
   Environment:
     Type: String
     Default: dev
     AllowedValues: [dev, qc, pdn]
-    Description: Entorno a propagar a la Lambda (coincide con lambdas.yml)
+    Description: Ambiente para los recursos (usado por lambdas.yml).
+  Region:
+    Type: String
+    Default: us-east-1
+    Description: Región AWS (pasado a s3.yml).
   EventTableName:
     Type: String
     Default: EventTable
-    Description: Nombre de la tabla a usar en la Lambda (coincide con dynamodb.yml)
+    Description: Nombre de la tabla DynamoDB (consumido por lambdas.yml).
   ApiKeyName:
     Type: String
     Default: events-api-key
-    Description: Nombre del API Key a crear (coincide con api-gateway.yml)
+    Description: Nombre del API Key en API Gateway.
   ApiKeyValue:
     Type: String
     Default: ""
     NoEcho: true
-    Description: "(Opcional) Valor fijo del API Key. Déjalo vacío para que AWS lo genere."
+    Description: >
+      (Opcional) Valor del API Key. Si va vacío, api-gateway.yml debe soportar crear el key y exponer el Id para consultarlo luego.
 
 Resources:
-  # 1) DynamoDB
+
+  S3Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplatesBaseUrl}/s3.yml"
+      Parameters:
+        Enviroment: !Ref Environment  # Nota: param escrito así en tu template s3.yml
+        Region: !Ref Region
+
   DynamoDBStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      # Con "package", estas rutas locales se reemplazan por S3 automáticamente
-      TemplateURL: dynamodb.yml
+      TemplateURL: !Sub "${TemplatesBaseUrl}/dynamodb.yml"
 
-  # 2) Lambda (depende de la tabla)
   LambdasStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: DynamoDBStack
+    DependsOn:
+      - DynamoDBStack
     Properties:
-      TemplateURL: lambdas.yml
+      TemplateURL: !Sub "${TemplatesBaseUrl}/lambdas.yml"
       Parameters:
         Environment: !Ref Environment
         EventTableName: !Ref EventTableName
 
-  # 3) API Gateway (depende de la Lambda)
   ApiGatewayStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: LambdasStack
+    DependsOn:
+      - LambdasStack
     Properties:
-      TemplateURL: api-gateway.yml
+      TemplateURL: !Sub "${TemplatesBaseUrl}/api-gateway.yml"
       Parameters:
-        LambdaFunctionArn: !GetAtt LambdasStack.Outputs.LambdaArn
+        LambdaFunctionArn: !GetAtt [LambdasStack, Outputs.LambdaArn]
         ApiKeyName: !Ref ApiKeyName
-        ApiKeyValue: !Ref ApiKeyValue
-
-Outputs:
-  ApiGatewayUrl:
-    Description: URL base del API
-    Value: !GetAtt ApiGatewayStack.Outputs.ApiGatewayUrl
-  EventEndpoint:
-    Description: Endpoint /event
-    Value: !GetAtt ApiGatewayStack.Outputs.EventEndpoint
-  ApiKeyId:
-    Description: ID del API Key
-    Value: !GetAtt ApiGatewayStack.Outputs.ApiKeyId
-  LambdaArn:
-    Description: ARN de la Lambda desplegada
-    Value: !GetAtt LambdasStack.Outputs.LambdaArn
