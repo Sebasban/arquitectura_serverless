@@ -12,7 +12,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
+    steps: 
       - name: Checkout código
         uses: actions/checkout@v4
 
