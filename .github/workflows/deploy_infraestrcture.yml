@@ -21,8 +21,15 @@ jobs:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::200093566387:role/github-deployer-role
 
-      - name: Deploy apigateway tables
+      - name: Subir archivos a S3 de infraestructura
         run:  |
           aws s3 sync ./infraestructura/templates s3://lambda-code-200093566387-us-east-1-dev/infra_templates --delete
+
+      - name: Empaquetar archivos a S3 de infraestructura
+        run:  |
+          aws cloudformation package \
+          --template-file main.yml \
+          --s3-bucket s3://lambda-code-200093566387-us-east-1-dev/infra_templates \
+          --output-template-file main.packaged.yml \
 
       
