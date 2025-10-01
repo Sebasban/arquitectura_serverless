@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Crea una Lambda para el microservicio de  event
+
+Parameters:
+  Environment:
+    Type: String
+    Description: "Texto adicional para el nombre del bucket (ej: dev, qc, pdn)"
+    Default: "dev"
+    AllowedValues: ["dev", "qc", "pdn"]
+
+  EventTableName:
+    Type: String
+    Description: "Nombre de la tabla DynamoDB (ej: EventTable)"
+    Default: "EventTable"
+
+Resources:
+
+  EventLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'EventLambdaModificationPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Permisos de logging
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:CreateLogGroup'
+                Resource: '*'   # CreateLogGroup requiere * porque el recurso aún no existe
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/EventLambda:*"
+              # Permisos de DynamoDB sobre la tabla e índices
+              - Effect: 'Allow'
+                Action:
+                  - 'dynamodb:PutItem'
+                  - 'dynamodb:UpdateItem'
+                  - 'dynamodb:DeleteItem'
+                  - 'dynamodb:Query'
+                  - 'dynamodb:Scan'
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}/index/*"
+
+  EventLambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/EventLambda"
+      RetentionInDays: 30
+
+  EventLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    DependsOn: EventLambdaLogGroup
+    Properties:
+      FunctionName: 'EventLambda'
+      Handler: 'events_lambda.lambda_handler'
+      Runtime: python3.12
+      Code:
+        S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+        S3Key: "events_lambda.py.zip"
+      MemorySize: 128
+      Timeout: 20
+      Role: !GetAtt EventLambdaRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventTableName
+          REGION: !Ref 'AWS::Region'
+          LOG_LEVEL: "INFO"
+
+Outputs:
+  LambdaName:
+    Description: Nombre de la función Lambda
+    Value: !Ref EventLambdaFunction
+  LambdaArn:
+    Description: ARN de la función Lambda
+    Value: !GetAtt EventLambdaFunction.Arn
+  LogGroupName:
+    Description: Log group de CloudWatch
+    Value: "/aws/lambda/EventLambda"

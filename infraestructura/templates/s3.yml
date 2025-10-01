@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Crea un bucket de S3 para almacenar el código fuente de funciones Lambda,
+  con parámetro para añadir sufijo personalizado al nombre.
+
+Parameters:
+  Enviroment:
+    Type: String
+    Description: "Texto adicional para el nombre del bucket (ej: dev, prod, featureX)"
+    Default: "dev"
+    AllowedValues: ["dev", "qc", "pdn"]
+
+  Region:
+    Type: String
+    Description: "Define la region del recurso para el nombre"
+    Default: "us-east-1"
+
+Resources:
+
+  LambdaCodeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "lambda-code-${AWS::AccountId}-${Region}-${Enviroment}"
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Purpose
+          Value: LambdaCodeStorage
+        - Key: Environment
+          Value: !Ref Enviroment
+
+  LambdaCodeBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LambdaCodeBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: EnforceSSL
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !Sub "${LambdaCodeBucket.Arn}/*"
+              - !GetAtt LambdaCodeBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+Outputs:
+  LambdaCodeBucketName:
+    Description: Nombre del bucket de S3 para código Lambda
+    Value: !Ref LambdaCodeBucket
+  LambdaCodeBucketArn:
+    Description: ARN del bucket de S3 para código Lambda
+    Value: !GetAtt LambdaCodeBucket.Arn

@@ -1,0 +1,45 @@
+Resources:
+  EventTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: EventId
+          AttributeType: S
+        - AttributeName: EventName
+          AttributeType: S
+        - AttributeName: EventDate
+          AttributeType: S
+        - AttributeName: EventStatus
+          AttributeType: S
+        - AttributeName: EventCity
+          AttributeType: S
+      KeySchema:
+        - AttributeName: EventId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: EventNameIndex
+          KeySchema:
+            - AttributeName: EventName
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: EventDateIndex
+          KeySchema:
+            - AttributeName: EventDate
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: EventStatusIndex
+          KeySchema:
+            - AttributeName: EventStatus
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: EventCityIndex
+          KeySchema:
+            - AttributeName: EventCity
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
