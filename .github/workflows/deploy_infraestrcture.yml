@@ -29,7 +29,7 @@ jobs:
         run:  |
           aws cloudformation package \
           --template-file main.yml \
-          --s3-bucket s3://lambda-code-200093566387-us-east-1-dev/infra_templates \
+          --s3-bucket s3://lambda-code-200093566387-us-east-1-dev/infra_templates/ \
           --output-template-file main.packaged.yml \
 
       
