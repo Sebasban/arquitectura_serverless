@@ -1,4 +1,4 @@
-name: Deploy Infra con CloudFormation
+name: Deploy app con CloudFormation
 
 on:
   push:
