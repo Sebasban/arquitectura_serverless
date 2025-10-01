@@ -1,8 +1,8 @@
 name: Deploy Infra con CloudFormation
 
 on:
-  pull_request:
-    branches: [ main ]
+  push:
+    branches: [ develop ]
     paths:
       - 'infraestructura/templates/**'
 

@@ -15,7 +15,7 @@ def lambda_handler(event, context):
         # Esto te permite probar desde el test de la consola de Lambda
         body = event
 
-    event_id = body.get("EventId", str(uuid.uuid4()))
+    event_id = body.get("EventId", str(uuid.uuid4())) 
 
     item = {
         "EventId": event_id,
