@@ -27,14 +27,14 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       # Con "package", estas rutas locales se reemplazan por S3 automáticamente
-      TemplateURL: ../templates/dynamodb.yml
+      TemplateURL: dynamodb.yml
 
   # 2) Lambda (depende de la tabla)
   LambdasStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: DynamoDBStack
     Properties:
-      TemplateURL: ../templates/lambdas.yml
+      TemplateURL: lambdas.yml
       Parameters:
         Environment: !Ref Environment
         EventTableName: !Ref EventTableName
@@ -44,7 +44,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DependsOn: LambdasStack
     Properties:
-      TemplateURL: ../templates/api-gateway.yml
+      TemplateURL: api-gateway.yml
       Parameters:
         LambdaFunctionArn: !GetAtt LambdasStack.Outputs.LambdaArn
         ApiKeyName: !Ref ApiKeyName
