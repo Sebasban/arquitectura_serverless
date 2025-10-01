@@ -22,7 +22,7 @@ jobs:
           role-to-assume: arn:aws:iam::200093566387:role/github-deployer-role
       
       - name: Comprimir codido lambda
-        run: zip events_lambda.py.zip micro-servicios/agregar-evento
+        run: zip -r events_lambda.py.zip micro-servicios/agregar-evento
 
       - name: donde queda el archivo
         run: pwd
@@ -33,4 +33,4 @@ jobs:
 
       - name: Subir codigo lambda a S3
         run: |
-          aws s3 cp infraestructura/lambdas/events_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication
+          aws s3 cp events_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
