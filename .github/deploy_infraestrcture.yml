@@ -2,7 +2,9 @@ name: Deploy Infra con CloudFormation
 
 on:
   pull_request:
-    branches: - main
+    branches: [ main ]
+    paths:
+      - 'infra/templates/**'
 
 permissions:
   id-token: write   # necesario para OIDC
