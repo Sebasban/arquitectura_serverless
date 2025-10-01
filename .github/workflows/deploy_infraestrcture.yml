@@ -3,6 +3,8 @@ name: Deploy Infra con CloudFormation
 on:
   push:
     branches: [ develop ]
+    paths:
+      - 'infraestructura/templates/**'
 
 permissions:
   id-token: write   # necesario para OIDC
