@@ -2,7 +2,7 @@ name: Deploy app con CloudFormation
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, prueba ]
 
 permissions:
   id-token: write
