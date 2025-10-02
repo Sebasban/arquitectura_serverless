@@ -1,4 +1,3 @@
-# .github/workflows/deploy_infrastructure.yml
 name: Deploy Infra con CloudFormation
 
 on:
@@ -18,8 +17,8 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::200093566387:role/role-oidc-nequi-ci  # <-- AJUSTA
           aws-region: us-east-1
+          role-to-assume: arn:aws:iam::200093566387:role/github-deployer-role
 
       - name: Deploy root stack (dev)
         run: |
