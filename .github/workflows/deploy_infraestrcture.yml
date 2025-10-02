@@ -2,11 +2,6 @@ name: Deploy Infra con CloudFormation
 
 on:
   workflow_dispatch: # habilita ejecución manual
-    inputs:
-      environment:
-        description: "Ambiente (dev/stage/prod)"
-        required: true
-        default: "dev"
 
 permissions:
   id-token: write
