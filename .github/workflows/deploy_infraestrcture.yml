@@ -2,9 +2,9 @@ name: Deploy Infra con CloudFormation
 
 on:
   workflow_run:
-    workflows: ["Deploy app con CloudFormation"]  # nombre exacto de A.yml
+    workflows: ["Deploy app con CloudFormation"]  # nombre EXACTO de A (con comillas)
     types: [completed]
-    branches: [develop]
+    branches: [develop]  # opcional pero recomendado si A corre en develop
 
 permissions:
   id-token: write
@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # solo si A terminó OK
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout código
@@ -37,4 +38,3 @@ jobs:
               ApiKeyValue="" \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
-
