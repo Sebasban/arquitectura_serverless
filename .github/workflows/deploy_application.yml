@@ -20,12 +20,9 @@ jobs:
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::200093566387:role/github-deployer-role
-      
-      - name: Cambiar directorio
-        run: cd micro-servicios/agregar-evento 
                    
       - name: Comprimir codigo lambda
-        run: zip -r /events_lambda.py.zip /
+        run: zip events_lambda.py.zip micro-servicios/agregar-evento/events_lambda.py
 
       - name: donde queda el archivo
         run: pwd
