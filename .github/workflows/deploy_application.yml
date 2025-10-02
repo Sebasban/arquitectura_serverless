@@ -38,7 +38,7 @@ jobs:
       - name: Deploy root stack
               run: |
                 aws cloudformation deploy \
-                  --stack-name nequi-root-dev \
+                  --stack-name deploy_infra_proyect \
                   --template-file infraestructura/stacks/main.yml \
                   --parameter-overrides \
                     TemplatesBaseUrl="https://s3.amazonaws.com/lambda-code-200093566387-us-east-1-dev/infra_templates" \
