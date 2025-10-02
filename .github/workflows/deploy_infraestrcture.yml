@@ -1,10 +1,7 @@
 name: Deploy Infra con CloudFormation
 
 on:
-  workflow_run:
-    workflows: ["Deploy application"]   # <-- nombre EXACTO del A (como se ve en Actions)
-    types: [completed]
-    branches: [develop]                 # <-- rama donde corrió A
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -12,18 +9,6 @@ permissions:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # solo si A terminó OK
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
-
-      - name: Configurar credenciales AWS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::200093566387:role/github-deployer-role
-
       - name: Deploy root stack
         run: |
           aws cloudformation deploy \
