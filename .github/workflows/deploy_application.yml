@@ -34,3 +34,19 @@ jobs:
       - name: Subir codigo lambda a S3
         run: |
           aws s3 cp events_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
+
+      - name: Deploy root stack
+              run: |
+                aws cloudformation deploy \
+                  --stack-name nequi-root-dev \
+                  --template-file infraestructura/stacks/main.yml \
+                  --parameter-overrides \
+                    TemplatesBaseUrl="https://s3.amazonaws.com/lambda-code-200093566387-us-east-1-dev/infra_templates" \
+                    Environment=dev \
+                    Region=us-east-1 \
+                    EventTableName=EventTable \
+                    ApiKeyName=events-api-key \
+                    ApiKeyValue="" \
+                  --capabilities CAPABILITY_NAMED_IAM \
+                  --no-fail-on-empty-changeset
+
