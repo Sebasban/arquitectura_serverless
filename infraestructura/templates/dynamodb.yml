@@ -16,10 +16,17 @@ Resources:
         - AttributeName: EventCity
           AttributeType: S
         - AttributeName: NumberEntries
-          AttributeType: I
+          AttributeType: N
       KeySchema:
         - AttributeName: EventId
           KeyType: HASH
+
+      # >>> Activar PITR (restauraciones hasta 35 días atrás)
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      # (Opcional) Evita borrado accidental de la tabla:
+      # DeletionProtectionEnabled: true
+
       GlobalSecondaryIndexes:
         - IndexName: EventNameIndex
           KeySchema:
@@ -42,6 +49,12 @@ Resources:
         - IndexName: EventCityIndex
           KeySchema:
             - AttributeName: EventCity
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: NumberEntriesIndex
+          KeySchema:
+            - AttributeName: NumberEntries
               KeyType: HASH
           Projection:
             ProjectionType: ALL
