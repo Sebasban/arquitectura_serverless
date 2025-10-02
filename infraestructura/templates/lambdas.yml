@@ -49,6 +49,8 @@ Resources:
                   - 'dynamodb:DeleteItem'
                   - 'dynamodb:Query'
                   - 'dynamodb:Scan'
+                  - 'dynamodb:GetItem'        # <- Faltaba
+                  - 'dynamodb:DescribeTable'  # <- Recomendado
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}/index/*"
