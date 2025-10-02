@@ -1,7 +1,8 @@
+# .github/workflows/deploy_infrastructure.yml
 name: Deploy Infra con CloudFormation
 
 on:
-  workflow_dispatch: # habilita ejecución manual
+  workflow_dispatch: {}  # habilita ejecución manual
 
 permissions:
   id-token: write
@@ -10,26 +11,24 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Config credenciales vía OIDC (ajusta role y region)
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::200093566387:role/role-oidc-nequi-ci # <- AJUSTA ESTO
+          role-to-assume: arn:aws:iam::200093566387:role/role-oidc-nequi-ci  # <-- AJUSTA
           aws-region: us-east-1
 
-      - name: Deploy root stack
+      - name: Deploy root stack (dev)
         run: |
           aws cloudformation deploy \
-            --stack-name nequi-root-${{ github.event.inputs.environment }} \
+            --stack-name nequi-root-dev \
             --template-file infraestructura/stacks/main.yml \
             --parameter-overrides \
-              TemplatesBaseUrl="https://s3.amazonaws.com/lambda-code-200093566387-us-east-1-${{ github.event.inputs.environment }}/infra_templates" \
-              Environment=${{ github.event.inputs.environment }} \
+              TemplatesBaseUrl="https://s3.amazonaws.com/lambda-code-200093566387-us-east-1-dev/infra_templates" \
+              Environment=dev \
               Region=us-east-1 \
               EventTableName=EventTable \
               ApiKeyName=events-api-key \
