@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Crea una Lambda para el microservicio de  event
+  Crea una Lambda para el microservicio de event
 
 Parameters:
   Environment:
@@ -35,7 +35,7 @@ Resources:
               - Effect: 'Allow'
                 Action:
                   - 'logs:CreateLogGroup'
-                Resource: '*'   # CreateLogGroup requiere * porque el recurso aún no existe
+                Resource: '*'
               - Effect: 'Allow'
                 Action:
                   - 'logs:CreateLogStream'
@@ -86,80 +86,4 @@ Resources:
       Runtime: python3.12
       Code:
         S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
-        S3Key: "scripts_aplication/events_lambda.py.zip"
-      MemorySize: 128
-      Timeout: 20
-      Role: !GetAtt EventLambdaRole.Arn
-      Environment:
-        Variables:
-          TABLE_NAME: !Ref EventTableName
-          REGION: !Ref 'AWS::Region'
-          LOG_LEVEL: "INFO"
-
-
-  UpdateEventLambdaRole:
-    Type: AWS::IAM::Role
-      Properties:
-        RoleName: LambdaUpdateEventRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: LambdaLogsPolicy
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource: "*"
-      Properties:
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-     
-
-  UpdateEventLambdaLogGroup:
-    Type: 'AWS::Logs::LogGroup'
-    Properties:
-      LogGroupName: "/aws/lambda/UpdateLambda"
-      RetentionInDays: 30
-
-  UpdateEventLambdaFunction:
-    Type: 'AWS::Lambda::Function'
-    DependsOn: UpdateEventLambdaLogGroup
-    Properties:
-      FunctionName: 'UpdateEventLambda'
-      Handler: 'update_event_lambda.lambda_handler'
-      Runtime: python3.12
-      Code:
-        S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
-        S3Key: "scripts_aplication/update_event_lambda.py.zip"
-      MemorySize: 128
-      Timeout: 20
-      Role: !GetAtt UpdateEventLambdaRole.Arn
-      Environment:
-        Variables:
-          TABLE_NAME: !Ref EventTableName
-          REGION: !Ref 'AWS::Region'
-          LOG_LEVEL: "INFO"
-
-Outputs:
-  LambdaName:
-    Description: Nombre de la función Lambda
-    Value: !Ref EventLambdaFunction
-  LambdaArn:
-    Description: ARN de la función Lambda
-    Value: !GetAtt EventLambdaFunction.Arn
-  LogGroupName:
-    Description: Log group de CloudWatch
-    Value: "/aws/lambda/EventLambda"
-  CodeBucket:
-    Description: Log group de CloudWatch
-    Value: "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+        S3Key: "scripts_aplication/events_lamb
