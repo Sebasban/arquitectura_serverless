@@ -25,7 +25,7 @@ jobs:
         run: cd micro-servicios/agregar-evento 
              
       - name: Comprimir codigo lambda
-        run: zip -r /events_lambda.py.zip micro-servicios/agregar-evento
+        run: zip -r /events_lambda.py.zip .
 
       - name: donde queda el archivo
         run: pwd
