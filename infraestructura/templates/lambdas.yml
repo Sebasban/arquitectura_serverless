@@ -41,6 +41,7 @@ Resources:
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogEvents'
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/EventLambda:*"
+
               # Permisos de DynamoDB sobre la tabla e índices
               - Effect: 'Allow'
                 Action:
@@ -49,11 +50,26 @@ Resources:
                   - 'dynamodb:DeleteItem'
                   - 'dynamodb:Query'
                   - 'dynamodb:Scan'
-                  - 'dynamodb:GetItem'        # <- Faltaba
-                  - 'dynamodb:DescribeTable'  # <- Recomendado
+                  - 'dynamodb:GetItem'        
+                  - 'dynamodb:DescribeTable'
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}/index/*"
+
+              # Permisos para crear y gestionar schedules de EventBridge Scheduler
+              - Effect: 'Allow'
+                Action:
+                  - 'scheduler:CreateSchedule'
+                  - 'scheduler:DeleteSchedule'
+                  - 'scheduler:GetSchedule'
+                  - 'scheduler:ListSchedules'
+                Resource: '*'
+
+              # Permiso para pasar un Role que EventBridge usará para invocar la Lambda B
+              - Effect: 'Allow'
+                Action:
+                  - 'iam:PassRole'
+                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/EventBridgeSchedulerInvokeLambdaRole"
 
   EventLambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
@@ -74,6 +90,60 @@ Resources:
       MemorySize: 128
       Timeout: 20
       Role: !GetAtt EventLambdaRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventTableName
+          REGION: !Ref 'AWS::Region'
+          LOG_LEVEL: "INFO"
+
+
+  UpdateEventLambdaRole:
+    Type: AWS::IAM::Role
+      Properties:
+        RoleName: LambdaUpdateEventRole
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: LambdaLogsPolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: "*"
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+     
+
+  UpdateEventLambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/UpdateLambda"
+      RetentionInDays: 30
+
+  UpdateEventLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    DependsOn: UpdateEventLambdaLogGroup
+    Properties:
+      FunctionName: 'UpdateEventLambda'
+      Handler: 'update_event_lambda.lambda_handler'
+      Runtime: python3.12
+      Code:
+        S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+        S3Key: "scripts_aplication/update_event_lambda.py.zip"
+      MemorySize: 128
+      Timeout: 20
+      Role: !GetAtt UpdateEventLambdaRole.Arn
       Environment:
         Variables:
           TABLE_NAME: !Ref EventTableName

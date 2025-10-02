@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Creacion de eventbridge para activar lambda que cambiara el estado del evento
+
+Resources:  
+  EventBridgeInvokeLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EventBridgeSchedulerInvokeLambdaRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeLambda
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: !GetAtt LambdaB.Arn
+
+  # EventBridge Schedule (fecha fija para prueba)
+  MyScheduledEvent:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: MyScheduledLambdaExecution
+      ScheduleExpression: 'at(2025-10-10T15:00:00Z)'  # Cambia esto a la fecha deseada
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt LambdaB.Arn
+        RoleArn: !GetAtt EventBridgeInvokeLambdaRole.Arn
+        Input: !Sub |
+          {
+            "id": "test-123",
+            "fecha": "2025-10-10T15:00:00Z"
+          }
