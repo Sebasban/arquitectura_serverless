@@ -88,3 +88,6 @@ Outputs:
   LogGroupName:
     Description: Log group de CloudWatch
     Value: "/aws/lambda/EventLambda"
+  CodeBucket:
+    Description: Log group de CloudWatch
+    Value: "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
