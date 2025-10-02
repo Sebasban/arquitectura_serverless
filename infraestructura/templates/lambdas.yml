@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Crea una Lambda para el microservicio de  event
+  Crea Lambdas para el microservicio de event 
 
 Parameters:
   Environment:
@@ -40,7 +40,7 @@ Resources:
                 Action:
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogEvents'
-                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/EventLambda:*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*"
               # Permisos de DynamoDB sobre la tabla e índices
               - Effect: 'Allow'
                 Action:
@@ -57,6 +57,18 @@ Resources:
     Type: 'AWS::Logs::LogGroup'
     Properties:
       LogGroupName: "/aws/lambda/EventLambda"
+      RetentionInDays: 30
+
+  UpdateEventLambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/UpdateEventLambda"
+      RetentionInDays: 30
+
+  DeleteEventLambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/DeleteEventLambda"
       RetentionInDays: 30
 
   EventLambdaFunction:
@@ -78,6 +90,44 @@ Resources:
           REGION: !Ref 'AWS::Region'
           LOG_LEVEL: "INFO"
 
+  UpdateEventLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    DependsOn: UpdateEventLambdaLogGroup
+    Properties:
+      FunctionName: 'UpdateEventLambda'
+      Handler: 'update_event_lambda.lambda_handler'
+      Runtime: python3.12
+      Code:
+        S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+        S3Key: "scripts_aplication/update_event_lambda.py.zip"
+      MemorySize: 128
+      Timeout: 20
+      Role: !GetAtt EventLambdaRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventTableName
+          REGION: !Ref 'AWS::Region'
+          LOG_LEVEL: "INFO"
+
+  DeleteEventLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    DependsOn: DeleteEventLambdaLogGroup
+    Properties:
+      FunctionName: 'DeleteEventLambda'
+      Handler: 'delete_event_lambda.lambda_handler'
+      Runtime: python3.12
+      Code:
+        S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+        S3Key: "scripts_aplication/delete_event_lambda.py.zip"
+      MemorySize: 128
+      Timeout: 20
+      Role: !GetAtt EventLambdaRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventTableName
+          REGION: !Ref 'AWS::Region'
+          LOG_LEVEL: "INFO"      
+
 Outputs:
   LambdaName:
     Description: Nombre de la función Lambda
@@ -91,3 +141,15 @@ Outputs:
   CodeBucket:
     Description: Log group de CloudWatch
     Value: "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+  UpdateLambdaName:
+    Description: Nombre de la función Update
+    Value: !Ref UpdateEventLambdaFunction
+  UpdateLambdaArn:
+    Description: ARN de la función Update
+    Value: !GetAtt UpdateEventLambdaFunction.Arn
+  DeleteLambdaName:
+    Description: Nombre de la función Delete
+    Value: !Ref DeleteEventLambdaFunction
+  DeleteLambdaArn:
+    Description: ARN de la función Delete
+    Value: !GetAtt DeleteEventLambdaFunction.Arn
