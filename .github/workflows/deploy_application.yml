@@ -31,7 +31,7 @@ jobs:
         run: pwd
 
       - name: ver archivos
-        run: pwd
+        run: ls
 
       - name: Subir templates a S3
         run: |
