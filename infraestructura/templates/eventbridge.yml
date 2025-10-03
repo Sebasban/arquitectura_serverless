@@ -17,9 +17,6 @@ Parameters:
     Default: "{}"
     Description: JSON que se enviará como input a la Lambda.
 
-Conditions:
-  HasScheduleExpression: !Not [!Equals [!Ref ScheduleExpression, ""]] 
-
 Resources:
   EventBridgeInvokeLambdaRole:
     Type: AWS::IAM::Role
@@ -44,7 +41,6 @@ Resources:
 
   UpdateLambdaSchedule:
     Type: AWS::Scheduler::Schedule
-    Condition: HasScheduleExpression
     Properties:
       Name: !Sub "update-lambda-schedule-${AWS::StackName}"
       FlexibleTimeWindow:
@@ -57,10 +53,6 @@ Resources:
       State: ENABLED
 
 Outputs:
-  ScheduleName:
-    Condition: HasScheduleExpression
-    Description: Nombre del schedule creado
-    Value: !Ref UpdateLambdaSchedule
 
   SchedulerRoleArn:
     Description: ARN del role usado por EventBridge Scheduler
