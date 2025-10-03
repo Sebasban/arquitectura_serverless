@@ -9,6 +9,8 @@ Parameters:
 
   ScheduleExpression:
     Type: String
+    Default: ""
+    Description: Expresion de para programar schedule fijos, como la lambda lo creara se deja vacion
 
   InputPayload:
     Type: String
