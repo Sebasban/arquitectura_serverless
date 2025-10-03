@@ -9,8 +9,6 @@ Parameters:
 
   ScheduleExpression:
     Type: String
-    Description: Expresión de programación (at(...) o rate/cron). Ej: at(2025-12-31T23:59:00Z) o rate(5 minutes)
-    Default: 'rate(5 minutes)'
 
   InputPayload:
     Type: String
