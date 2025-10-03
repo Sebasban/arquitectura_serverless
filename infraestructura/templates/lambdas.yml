@@ -64,6 +64,7 @@ Resources:
                   - 'scheduler:DeleteSchedule'
                   - 'scheduler:GetSchedule'
                   - 'scheduler:ListSchedules'
+                  - 'scheduler:UpdateSchedule'
                 Resource: '*'
 
               # Permiso para pasar rol

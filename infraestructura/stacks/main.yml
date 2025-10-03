@@ -67,11 +67,12 @@ Resources:
         ApiKeyName: !Ref ApiKeyName
 
   EventBridgeStack:
-    Type: AWS::CloudFormation::Stack 
+    Type: AWS::CloudFormation::Stack
     DependsOn:
       - LambdasStack
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/eventbridge.yml"
       Parameters:
         UpdateLambdaFunctionArn: !GetAtt [LambdasStack, Outputs.UpdateLambdaArn]
-        ScheduleExpression: "" 
+        ScheduleExpression: ""                 # <-- vacío => NO crea el Scheduler
+        InputPayload: '{"source":"cfn"}'       # opcional
