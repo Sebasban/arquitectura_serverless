@@ -4,7 +4,7 @@ Description: Root stack para desplegar S3 -> DynamoDB -> Lambdas -> API Gateway 
 Parameters:
   TemplatesBaseUrl:
     Type: String
-    Description: >
+    Description: > 
       URL base (sin el archivo) donde están las plantillas hijas en S3.
       Ej: https://s3.amazonaws.com/mi-bucket/cfn (sin la / final)
   Environment:
