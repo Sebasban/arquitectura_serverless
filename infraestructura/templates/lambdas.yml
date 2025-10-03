@@ -166,3 +166,7 @@ Outputs:
   CodeBucket:
     Description: Bucket de código Lambda
     Value: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+
+  UpdateLambdaArn:
+    Description: ARN de la función Lambda de actualización
+    Value: !GetAtt UpdateEventLambdaFunction.Arn

@@ -1,44 +1,63 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Creación de EventBridge Scheduler para activar una Lambda que cambiará el estado del evento.
+  EventBridge Scheduler que invoca la Lambda de actualización a una hora programada.
+
+Parameters:
+  UpdateLambdaFunctionArn:
+    Type: String
+    Description: ARN de la Lambda destino (UpdateEventLambda) que será invocada por el Scheduler.
+
+  ScheduleExpression:
+    Type: String
+    Description: Expresión de programación (at(...) o rate/cron). Ej: at(2025-12-31T23:59:00Z) o rate(5 minutes)
+    Default: 'rate(5 minutes)'
+
+  InputPayload:
+    Type: String
+    Description: Payload JSON que se enviará a la Lambda destino.
+    Default: '{}'
 
 Resources:
 
-  ## Rol que EventBridge usará para invocar la Lambda ##
+  # Rol que EventBridge Scheduler usará para invocar la Lambda destino
   EventBridgeInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: EventBridgeSchedulerInvokeLambdaRole
+      RoleName: !Sub "EventBridgeSchedulerInvokeLambdaRole-${AWS::StackName}"
       AssumeRolePolicyDocument:
-        Version: "2012-10-17" 
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
               Service: scheduler.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: InvokeLambda
+        - PolicyName: InvokeTargetLambda
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action:
-                  - lambda:InvokeFunction
-                Resource: !GetAtt LambdaB.Arn
+                Action: lambda:InvokeFunction
+                Resource: !Ref UpdateLambdaFunctionArn
 
-  ## EventBridge Scheduler para ejecución puntual ##
-  MyScheduledEvent:
+  # Schedule que invoca la Lambda de actualización
+  UpdateLambdaSchedule:
     Type: AWS::Scheduler::Schedule
     Properties:
-      Name: MyScheduledLambdaExecution
-      ScheduleExpression: 'at(2025-10-10T15:00:00Z)'  # Fecha y hora UTC
+      Name: !Sub "update-lambda-schedule-${AWS::StackName}"
+      ScheduleExpression: !Ref ScheduleExpression
       FlexibleTimeWindow:
-        Mode: "OFF"
+        Mode: OFF
       Target:
-        Arn: !GetAtt LambdaB.Arn
+        Arn: !Ref UpdateLambdaFunctionArn
         RoleArn: !GetAtt EventBridgeInvokeLambdaRole.Arn
-        Input: !Sub |
-          {
-            "id": "test-123",
-            "fecha": "2025-10-10T15:00:00Z"
-          }
+        Input: !Ref InputPayload
+
+Outputs:
+  ScheduleName:
+    Description: Nombre del schedule creado
+    Value: !Ref UpdateLambdaSchedule
+
+  SchedulerRoleArn:
+    Description: ARN del role usado por EventBridge Scheduler
+    Value: !GetAtt EventBridgeInvokeLambdaRole.Arn

@@ -65,3 +65,13 @@ Resources:
       Parameters:
         LambdaFunctionArn: !GetAtt [LambdasStack, Outputs.LambdaArn]
         ApiKeyName: !Ref ApiKeyName
+
+  EventBridgeStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - LambdasStack
+    Properties:
+      TemplateURL: !Sub "${TemplatesBaseUrl}/eventbridge.yml"
+      Parameters:
+        UpdateLambdaFunctionArn: !GetAtt [LambdasStack, Outputs.UpdateLambdaArn]
+        ApiKeyName: !Ref ApiKeyName
