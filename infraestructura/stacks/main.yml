@@ -67,7 +67,7 @@ Resources:
         ApiKeyName: !Ref ApiKeyName
 
   EventBridgeStack:
-    Type: AWS::CloudFormation::Stack
+    Type: AWS::CloudFormation::Stack 
     DependsOn:
       - LambdasStack
     Properties:
