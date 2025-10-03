@@ -10,15 +10,17 @@ Parameters:
   ScheduleExpression:
     Type: String
     Default: ""
-    Description: Expresion de para programar schedule fijos, como la lambda lo creara se deja vacion
+    Description: Expresión de schedule (ej. cron(0 12 * * ? *)); si se deja vacío, no se crea el schedule.
 
   InputPayload:
     Type: String
-    Description: Payload JSON que se enviará a la Lambda destino.
-    Default: '{}'
+    Default: "{}"
+    Description: JSON que se enviará como input a la Lambda.
+
+Conditions:
+  HasScheduleExpression: !Not [!Equals [!Ref ScheduleExpression, ""]]
 
 Resources:
-
   EventBridgeInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -29,31 +31,34 @@ Resources:
           - Effect: Allow
             Principal:
               Service: scheduler.amazonaws.com
-            Action: sts:AssumeRole
+            Action: "sts:AssumeRole"
       Policies:
-        - PolicyName: InvokeTargetLambda
+        - PolicyName: AllowInvokeTargetLambda
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: lambda:InvokeFunction
+                Action:
+                  - lambda:InvokeFunction
                 Resource: !Ref UpdateLambdaFunctionArn
 
   UpdateLambdaSchedule:
-    Condition: HasScheduleExpression
     Type: AWS::Scheduler::Schedule
+    Condition: HasScheduleExpression
     Properties:
       Name: !Sub "update-lambda-schedule-${AWS::StackName}"
-      ScheduleExpression: !Ref ScheduleExpression
       FlexibleTimeWindow:
         Mode: OFF
+      ScheduleExpression: !Ref ScheduleExpression
       Target:
         Arn: !Ref UpdateLambdaFunctionArn
         RoleArn: !GetAtt EventBridgeInvokeLambdaRole.Arn
         Input: !Ref InputPayload
+      State: ENABLED
 
 Outputs:
   ScheduleName:
+    Condition: HasScheduleExpression
     Description: Nombre del schedule creado
     Value: !Ref UpdateLambdaSchedule
 
