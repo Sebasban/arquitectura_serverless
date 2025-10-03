@@ -1,8 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Creacion de eventbridge para activar lambda que cambiara el estado del evento
+  Creación de EventBridge Scheduler para activar una Lambda que cambiará el estado del evento.
 
-Resources:  
+Resources:
+
+  ## Rol que EventBridge usará para invocar la Lambda ##
   EventBridgeInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -24,12 +26,12 @@ Resources:
                   - lambda:InvokeFunction
                 Resource: !GetAtt LambdaB.Arn
 
-  # EventBridge Schedule (fecha fija para prueba)
+  ## EventBridge Scheduler para ejecución puntual ##
   MyScheduledEvent:
     Type: AWS::Scheduler::Schedule
     Properties:
       Name: MyScheduledLambdaExecution
-      ScheduleExpression: 'at(2025-10-10T15:00:00Z)'  # Cambia esto a la fecha deseada
+      ScheduleExpression: 'at(2025-10-10T15:00:00Z)'  # Fecha y hora UTC
       FlexibleTimeWindow:
         Mode: "OFF"
       Target:

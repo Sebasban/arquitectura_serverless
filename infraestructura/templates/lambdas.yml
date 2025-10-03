@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Crea una Lambda para el microservicio de  event
+  Crea dos Lambdas para el microservicio de eventos.
 
 Parameters:
   Environment:
@@ -16,6 +16,7 @@ Parameters:
 
 Resources:
 
+  ## ROLE PARA EventLambda ##
   EventLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -31,18 +32,18 @@ Resources:
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              # Permisos de logging
+              # Logging
               - Effect: 'Allow'
                 Action:
                   - 'logs:CreateLogGroup'
-                Resource: '*'   # CreateLogGroup requiere * porque el recurso aún no existe
+                Resource: '*'
               - Effect: 'Allow'
                 Action:
                   - 'logs:CreateLogStream'
                   - 'logs:PutLogEvents'
                 Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/EventLambda:*"
 
-              # Permisos de DynamoDB sobre la tabla e índices
+              # DynamoDB Access
               - Effect: 'Allow'
                 Action:
                   - 'dynamodb:PutItem'
@@ -50,13 +51,13 @@ Resources:
                   - 'dynamodb:DeleteItem'
                   - 'dynamodb:Query'
                   - 'dynamodb:Scan'
-                  - 'dynamodb:GetItem'        
+                  - 'dynamodb:GetItem'
                   - 'dynamodb:DescribeTable'
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}"
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}/index/*"
 
-              # Permisos para crear y gestionar schedules de EventBridge Scheduler
+              # EventBridge Scheduler
               - Effect: 'Allow'
                 Action:
                   - 'scheduler:CreateSchedule'
@@ -65,18 +66,20 @@ Resources:
                   - 'scheduler:ListSchedules'
                 Resource: '*'
 
-              # Permiso para pasar un Role que EventBridge usará para invocar la Lambda B
+              # Permiso para pasar rol
               - Effect: 'Allow'
                 Action:
                   - 'iam:PassRole'
                 Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/EventBridgeSchedulerInvokeLambdaRole"
 
+  ## LOG GROUP PARA EventLambda ##
   EventLambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:
       LogGroupName: "/aws/lambda/EventLambda"
       RetentionInDays: 30
 
+  ## LAMBDA PRINCIPAL ##
   EventLambdaFunction:
     Type: 'AWS::Lambda::Function'
     DependsOn: EventLambdaLogGroup
@@ -96,41 +99,38 @@ Resources:
           REGION: !Ref 'AWS::Region'
           LOG_LEVEL: "INFO"
 
-
+  ## ROLE PARA UPDATE LAMBDA ##
   UpdateEventLambdaRole:
-    Type: AWS::IAM::Role
-      Properties:
-        RoleName: LambdaUpdateEventRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: LambdaLogsPolicy
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource: "*"
-      Properties:
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-     
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: LambdaUpdateEventRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaLogsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
 
+  ## LOG GROUP PARA UPDATE LAMBDA ##
   UpdateEventLambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:
       LogGroupName: "/aws/lambda/UpdateLambda"
       RetentionInDays: 30
 
+  ## LAMBDA PARA ACTUALIZACIÓN DE EVENTOS ##
   UpdateEventLambdaFunction:
     Type: 'AWS::Lambda::Function'
     DependsOn: UpdateEventLambdaLogGroup
@@ -154,12 +154,15 @@ Outputs:
   LambdaName:
     Description: Nombre de la función Lambda
     Value: !Ref EventLambdaFunction
+
   LambdaArn:
     Description: ARN de la función Lambda
     Value: !GetAtt EventLambdaFunction.Arn
+
   LogGroupName:
     Description: Log group de CloudWatch
     Value: "/aws/lambda/EventLambda"
+
   CodeBucket:
-    Description: Log group de CloudWatch
-    Value: "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+    Description: Bucket de código Lambda
+    Value: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
