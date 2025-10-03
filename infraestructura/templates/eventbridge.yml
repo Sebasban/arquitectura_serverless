@@ -19,7 +19,6 @@ Parameters:
 
 Resources:
 
-  # Rol que EventBridge Scheduler usará para invocar la Lambda destino
   EventBridgeInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -40,7 +39,6 @@ Resources:
                 Action: lambda:InvokeFunction
                 Resource: !Ref UpdateLambdaFunctionArn
 
-  # Schedule que invoca la Lambda de actualización
   UpdateLambdaSchedule:
     Type: AWS::Scheduler::Schedule
     Properties:
