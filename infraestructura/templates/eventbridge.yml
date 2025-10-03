@@ -40,14 +40,17 @@ Resources:
                 Resource: !Ref UpdateLambdaFunctionArn
 
   UpdateLambdaSchedule:
+    Condition: HasScheduleExpression
     Type: AWS::Scheduler::Schedule
     Properties:
       Name: !Sub "update-lambda-schedule-${AWS::StackName}"
+      ScheduleExpression: !Ref ScheduleExpression
       FlexibleTimeWindow:
         Mode: OFF
       Target:
         Arn: !Ref UpdateLambdaFunctionArn
         RoleArn: !GetAtt EventBridgeInvokeLambdaRole.Arn
+        Input: !Ref InputPayload
 
 Outputs:
   ScheduleName:
