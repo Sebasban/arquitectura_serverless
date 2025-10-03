@@ -18,7 +18,7 @@ Parameters:
     Description: JSON que se enviará como input a la Lambda.
 
 Conditions:
-  HasScheduleExpression: !Not [!Equals [!Ref ScheduleExpression, ""]]
+  HasScheduleExpression: !Not [!Equals [!Ref ScheduleExpression, ""]] 
 
 Resources:
   EventBridgeInvokeLambdaRole:
