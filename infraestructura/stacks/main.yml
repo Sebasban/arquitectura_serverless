@@ -74,3 +74,4 @@ Resources:
       TemplateURL: !Sub "${TemplatesBaseUrl}/eventbridge.yml"
       Parameters:
         UpdateLambdaFunctionArn: !GetAtt [LambdasStack, Outputs.UpdateLambdaArn]
+        ScheduleExpression: "" 
