@@ -24,7 +24,7 @@ Resources:
   EventBridgeInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "EventBridgeSchedulerInvokeLambdaRole-${AWS::StackName}"
+      RoleName: !Sub "EBSchedInvoke-${AWS::StackName}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
