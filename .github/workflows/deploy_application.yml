@@ -30,6 +30,9 @@ jobs:
       - name: donde queda el archivo
         run: pwd
 
+      - name: ver archivos
+        run: pwd
+
       - name: Subir templates a S3
         run: |
           aws s3 sync infraestructura/templates s3://lambda-code-200093566387-us-east-1-dev/infra_templates --delete
