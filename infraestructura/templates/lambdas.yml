@@ -289,7 +289,7 @@ Resources:
       Runtime: python3.12
       Code:
         S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
-        S3Key: "scripts_aplication/search_lambda.py.zip"
+        S3Key: "scripts_aplication/publish_event.py.zip"
       MemorySize: 128
       Timeout: 20
       Role: !GetAtt PutUserEventLambdaRole.Arn
@@ -347,7 +347,7 @@ Resources:
       Runtime: python3.12
       Code:
         S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
-        S3Key: "scripts_aplication/search_lambda.py.zip"
+        S3Key: "scripts_aplication/send_email.py.zip"
       MemorySize: 128
       Timeout: 20
       Role: !GetAtt SendMailEventLambdaRole.Arn
