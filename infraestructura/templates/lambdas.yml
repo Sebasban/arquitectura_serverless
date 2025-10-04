@@ -234,18 +234,153 @@ Resources:
           REGION: !Ref 'AWS::Region'
           LOG_LEVEL: "INFO"
 
+  ## ROLE PARA UPDATE LAMBDA ##
+  PutUserEventLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: LambdaPutUserEventRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaLogsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+          # DynamoDB Access
+              - Effect: 'Allow'
+                Action:
+                  - 'dynamodb:Query'
+                  - 'dynamodb:UpdateItem'
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}/index/*"
+
+              - Effect: 'Allow'
+                Action:
+                  - sqs:SendMessage
+                Resource:
+                  - arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
+
+  ## LOG GROUP PARA UPDATE LAMBDA ##
+  PutUserLambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/SearchLambda"
+      RetentionInDays: 30
+
+  ## LAMBDA PARA ACTUALIZACIÓN DE EVENTOS ##
+  PutUserLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    DependsOn: PutUserLambdaLogGroup
+    Properties:
+      FunctionName: 'SearchEventLambda'
+      Handler: 'search_lambda.lambda_handler'
+      Runtime: python3.12
+      Code:
+        S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+        S3Key: "scripts_aplication/search_lambda.py.zip"
+      MemorySize: 128
+      Timeout: 20
+      Role: !GetAtt PutUserEventLambdaRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventTableName
+          REGION: !Ref 'AWS::Region'
+          LOG_LEVEL: "INFO"
+
+  ## ROLE PARA UPDATE LAMBDA ##
+  SendMailEventLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: LambdaSendMailEventRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaLogsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ChangeMessageVisibility
+                Resource:
+                  - arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail #Sin adjuntos
+                  - ses:SendRawEmail #Con adjuntos
+                Resource: "*"
+
+  ## LOG GROUP PARA UPDATE LAMBDA ##
+  SendMailLambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/SearchLambda"
+      RetentionInDays: 30
+
+  ## LAMBDA PARA ACTUALIZACIÓN DE EVENTOS ##
+  SendMailLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    DependsOn: SendMailLambdaLogGroup
+    Properties:
+      FunctionName: 'SearchEventLambda'
+      Handler: 'search_lambda.lambda_handler'
+      Runtime: python3.12
+      Code:
+        S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+        S3Key: "scripts_aplication/search_lambda.py.zip"
+      MemorySize: 128
+      Timeout: 20
+      Role: !GetAtt SendMailEventLambdaRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventTableName
+          REGION: !Ref 'AWS::Region'
+          LOG_LEVEL: "INFO"
+
+  MyEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
+      FunctionName: !Ref LambdaSES
+      BatchSize: 10
+      MaximumBatchingWindowInSeconds: 0
+
 Outputs:
   LambdaName:
-    Description: Nombre de la función Lambda
+    Description: Nombre de la función Lambda de eventos
     Value: !Ref EventLambdaFunction
 
   LambdaArn:
-    Description: ARN de la función Lambda
+    Description: ARN de la función Lambda de eventos
     Value: !GetAtt EventLambdaFunction.Arn
 
   LambdaSearchArn:
-    Description: ARN de la función Lambda
+    Description: ARN de la función Lambda de busqueda
     Value: !GetAtt SearchEventLambdaFunction.Arn
+
+  LambdaPutUserArn:
+    Description: ARN de la función Lambda
+    Value: !GetAtt PutUserLambdaFunction.Arn
 
   LogGroupName:
     Description: Log group de CloudWatch
