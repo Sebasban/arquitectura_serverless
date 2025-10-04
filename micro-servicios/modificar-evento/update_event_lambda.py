@@ -1,57 +1,30 @@
-import json
-import logging
-import boto3
-import os
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+import os, json, boto3
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["TABLE_NAME"])
 
-REQUIRED_KEYS = ["EventId"]  # ajusta según lo que envíes desde la Lambda A
-
-def _normalize_event(event):
-
-    if isinstance(event, dict):
-        return event
-    if isinstance(event, str):
-        try:
-            return json.loads(event)
-        except json.JSONDecodeError:
-            return {"raw": event}
-    return json.loads(json.dumps(event, default=str))
-
-def _validate_payload(payload: dict):
-    missing = [k for k in REQUIRED_KEYS if k not in payload]
-    return missing
-
 def handler(event, context):
-    logger.info("Payload recibido (crudo): %s", event)
+    # Normaliza si llega como string
+    if isinstance(event, str):
+        event = json.loads(event)
 
-    payload = _normalize_event(event)
-    logger.info("Payload normalizado: %s", payload)
+    item = event.get("items") or {}
+    eid = item.get("EventId")
+    if not eid:
+        return {"statusCode": 400, "body": json.dumps({"message": "Falta items.EventId"})}
 
-    # Valida campos mínimos
-    missing = _validate_payload(payload)
-    if missing:
-        msg = {"message": "payload inválido", "missing": missing, "payload": payload}
-        logger.warning(msg)
-        return {"statusCode": 400, "body": json.dumps(msg)}
-
-    # Ejemplo de uso de valores
-    event_id = payload["EventId"]
-
-    # 👉 aquí haces tu lógica de negocio
-    logger.info(f"Procesando EventId={event_id})")
-
-    item = {
-            "EventId": eid,
-            "EventName": body["EventName"],
-            "EventDate": body["EventDate"],
-            "EventStatus": body["EventStatus"],
-            "EventCity": body["EventCity"],
-            "NumberEntries": body["NumberEntries"]
-        }
-    table.put_item(Item=item)
-    return {"statusCode": 200, "body": json.dumps({"message": "updated", "item": item})}
+    # Cambia SOLO este campo (ejemplo: EventStatus -> "Agotado")
+    try:
+        resp = table.update_item(
+            Key={"EventId": eid},
+            UpdateExpression="SET #f = :v",
+            ExpressionAttributeNames={"#f": "EventStatus"},
+            ExpressionAttributeValues={":v": "No disponible"},
+            ConditionExpression="attribute_exists(EventId)",
+            ReturnValues="ALL_NEW",
+        )
+        return {"statusCode": 200, "body": json.dumps(resp["Attributes"])}
+    except table.meta.client.exceptions.ConditionalCheckFailedException:
+        return {"statusCode": 404, "body": json.dumps({"message": "not found", "EventId": eid})}
+    except Exception as e:
+        return {"statusCode": 500, "body": json.dumps({"message": "error", "error": str(e)})}
