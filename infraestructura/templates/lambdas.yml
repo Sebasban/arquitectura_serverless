@@ -343,7 +343,7 @@ Resources:
     DependsOn: SendMailLambdaLogGroup
     Properties:
       FunctionName: 'SendMailLambda'
-      Handler: 'send_main.lambda_handler'
+      Handler: 'send_mail.lambda_handler'
       Runtime: python3.12
       Code:
         S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
@@ -360,7 +360,7 @@ Resources:
   MyEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
-      EventSourceArn: arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
+      EventSourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy"
       FunctionName: !Ref SendMailLambdaFunction
       BatchSize: 10
       MaximumBatchingWindowInSeconds: 0
