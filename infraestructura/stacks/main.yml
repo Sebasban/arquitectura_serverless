@@ -71,6 +71,7 @@ Resources:
       Parameters:
         LambdaArn: !GetAtt [LambdasStack, Outputs.LambdaArn]
         LambdaSearchArn: !GetAtt [LambdasStack, Outputs.LambdaSearchArn]
+        LambdaPutUserArn: !GetAtt [LambdasStack, Outputs.LambdaPutUserArn]
         ApiKeyName: !Ref ApiKeyName
 
   EventBridgeStack:
