@@ -93,7 +93,7 @@ def lambda_handler(event, context):
 
     if method == "DELETE":
         body = _body(event)
-        eid = _event_id(event, body)
+        eid = _event_id(event, body) 
         if not eid:
             return {"statusCode": 400, "body": json.dumps({"message": "EventId requerido"})}
         table.delete_item(Key={"EventId": eid})
