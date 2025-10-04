@@ -361,7 +361,7 @@ Resources:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
       EventSourceArn: arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
-      FunctionName: !Ref LambdaSES
+      FunctionName: !Ref SendMailLambdaFunction
       BatchSize: 10
       MaximumBatchingWindowInSeconds: 0
 
