@@ -238,7 +238,7 @@ Resources:
   PutUserEventLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: LambdaPutUserEventRole
+      RoleName: LambdaPutUserRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -270,7 +270,7 @@ Resources:
                 Action:
                   - sqs:SendMessage
                 Resource:
-                  - arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
+                  - !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
 
   ## LOG GROUP PARA UPDATE LAMBDA ##
   PutUserLambdaLogGroup:
@@ -303,7 +303,7 @@ Resources:
   SendMailEventLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: LambdaSendMailEventRole
+      RoleName: LambdaSendMailRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -323,7 +323,7 @@ Resources:
                   - sqs:GetQueueAttributes
                   - sqs:ChangeMessageVisibility
                 Resource:
-                  - arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
+                  - !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
               - Effect: Allow
                 Action:
                   - ses:SendEmail #Sin adjuntos
