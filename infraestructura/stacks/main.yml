@@ -30,6 +30,9 @@ Parameters:
     NoEcho: true
     Description: >
       (Opcional) Valor del API Key. Si va vacío, api-gateway.yml debe soportar crear el key y exponer el Id para consultarlo luego.
+  UpdateLambdaFunctionArn:
+    Type: String
+    Description: ARN de la Lambda destino a invocar por el Scheduler (p.ej. UpdateEventLambda).
 
 Resources:
 
@@ -50,11 +53,13 @@ Resources:
     Type: AWS::CloudFormation::Stack
     DependsOn:
       - DynamoDBStack
+      - EventBridgeStack
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/lambdas.yml"
       Parameters:
         Environment: !Ref Environment
         EventTableName: !Ref EventTableName
+        SchedulerRoleArn: !GetAtt [EventBridgeStack, Outputs.SchedulerRoleArn]
 
   ApiGatewayStack:
     Type: AWS::CloudFormation::Stack
@@ -68,11 +73,9 @@ Resources:
 
   EventBridgeStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn:
-      - LambdasStack
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/eventbridge.yml"
       Parameters:
-        UpdateLambdaFunctionArn: !GetAtt [LambdasStack, Outputs.UpdateLambdaArn]
+        UpdateLambdaFunctionArn: !Ref UpdateLambdaFunctionArn
         ScheduleExpression: ""                 # <-- vacío => NO crea el Scheduler
         InputPayload: '{"source":"cfn"}'       # opcional

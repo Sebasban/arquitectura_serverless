@@ -27,7 +27,6 @@ Resources:
   EventBridgeInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: EventBridgeSchedulerInvokeLambdaRole
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -37,7 +36,7 @@ Resources:
             Action: "sts:AssumeRole"
       Policies:
         - PolicyName: AllowInvokeTargetLambda
-          PolicyDocument: 
+          PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
