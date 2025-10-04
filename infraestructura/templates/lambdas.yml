@@ -292,7 +292,7 @@ Resources:
         S3Key: "scripts_aplication/publish_event.py.zip"
       MemorySize: 128
       Timeout: 20
-      Role: !GetAtt PutUserEventLambdaRole.Arn
+      Role: !GetAtt PutUserEventLambdaRole.Arn 
       Environment:
         Variables:
           TABLE_NAME: !Ref EventTableName
