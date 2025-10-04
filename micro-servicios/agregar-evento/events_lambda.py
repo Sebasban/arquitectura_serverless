@@ -50,7 +50,7 @@ def lambda_handler(event, context):
                 Target={ 
                     "Arn": os.environ["UPDATEARNFUNCTION"],
                     "RoleArn": os.environ["SCHEDULEARN"],
-                    "Input": json.dumps({"triggered_by": "Lambda A", "EventId": eid})
+                    "Input": json.dumps({"items":item})
                 },
                 State="ENABLED",
                 GroupName="default"
@@ -88,6 +88,7 @@ def lambda_handler(event, context):
             "EventDate": body["EventDate"],
             "EventStatus": body["EventStatus"],
             "EventCity": body["EventCity"],
+            "NumberEntries": body["NumberEntries"]
         }
         table.put_item(Item=item)
         return {"statusCode": 200, "body": json.dumps({"message": "updated", "item": item})}
