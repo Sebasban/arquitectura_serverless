@@ -34,7 +34,7 @@ jobs:
         run: zip -j publish_event.py.zip micro-servicios/enviar-correo/publish_event.py
 
       - name: Comprimir codigo lambda sned email
-        run: zip -j send_main.py.zip micro-servicios/enviar-correo/send_main.py
+        run: zip -j send_main.py.zip micro-servicios/enviar-correo/send_mail.py
 
       - name: donde queda el archivo
         run: pwd
