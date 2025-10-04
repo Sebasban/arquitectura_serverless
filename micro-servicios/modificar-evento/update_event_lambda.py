@@ -3,7 +3,7 @@ import os, json, boto3
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["TABLE_NAME"])
 
-def handler(event, context):
+def lambda_handler(event, context):
     # Normaliza si llega como string
     if isinstance(event, str):
         event = json.loads(event)
