@@ -141,7 +141,7 @@ Resources:
                   - 'dynamodb:DeleteItem'
                   - 'dynamodb:Query'
                   - 'dynamodb:Scan'
-                  - 'dynamodb:GetItem'
+                  - 'dynamodb:GetItem' 
                   - 'dynamodb:DescribeTable'
                 Resource:
                   - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}"
