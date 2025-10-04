@@ -20,7 +20,6 @@ Resources:
   EventLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: LambdaEventRole
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -72,8 +71,7 @@ Resources:
               - Effect: 'Allow'
                 Action:
                   - 'iam:PassRole'
-                Resource: !GetAtt EventBridgeInvokeLambdaRole.Arn
-
+                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/EventBridgeSchedulerInvokeLambdaRole"
 
   ## LOG GROUP PARA EventLambda ##
   EventLambdaLogGroup:
