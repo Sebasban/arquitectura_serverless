@@ -52,14 +52,14 @@ def lambda_handler(event, context):
                     "RoleArn": os.environ["SCHEDULEARN"],
                     "Input": json.dumps({"items":item})
                 },
-                State="ENABLED",
+                State="ENABLED", 
                 GroupName="default"
             )
             item["schedule_created"] = True
             item["scheduled_for"] = f"{body["EventDate"]}"
         except Exception as e:
             item["schedule_created"] = False
-            item["error"] = str(e)        
+            item["error"] = str(e)
         return {"statusCode": 201, "body": json.dumps({"message": "created", "item": item})}
 
     if method == "GET":
