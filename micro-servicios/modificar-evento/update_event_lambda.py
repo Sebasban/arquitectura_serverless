@@ -31,22 +31,6 @@ def _normalize_event(event):
     # fallback
     return json.loads(json.dumps(event, default=str))
 
-def _to_ddb_number(value):
-    """Convierte números a Decimal para DynamoDB sin perder precisión."""
-    if isinstance(value, (int, Decimal)):
-        return Decimal(value)
-    if isinstance(value, float):
-        # Evitar binarios de float
-        return Decimal(str(value))
-    # Si viene como string y es número, intentar convertir
-    if isinstance(value, str):
-        try:
-            return Decimal(value)
-        except InvalidOperation:
-            return value
-    return value
-# ------------------------------
-
 def lambda_handler(event, context):
     event = _normalize_event(event)
 
@@ -64,13 +48,11 @@ def lambda_handler(event, context):
     # 1) Campo/valor dinámico (si viene `update`)
     upd = (event or {}).get("update") or {}
     field = upd.get("field")
-    value = upd.get("value")
 
     # 2) Si no se indicó `update`, intentamos usar items.EventStatus (caso común)
     if not field:
         if "EventStatus" in items:
             field = "EventStatus"
-            value = items.get("EventStatus")
         else:
             return {
                 "statusCode": 400,
@@ -83,8 +65,6 @@ def lambda_handler(event, context):
     if field == "EventId":
         return {"statusCode": 400, "body": _json_dumps({"message": "No se puede actualizar la PK EventId"})}
 
-    # Preparar valor para DynamoDB (números -> Decimal)
-    ddb_value = _to_ddb_number(value)
     
     try:
         resp = table.update_item(

@@ -69,7 +69,8 @@ Resources:
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/api-gateway.yml"
       Parameters:
-        LambdaFunctionArn: !GetAtt [LambdasStack, Outputs.LambdaArn]
+        LambdaArn: !GetAtt [LambdasStack, Outputs.LambdaArn]
+        LambdaSearchArn: !GetAtt [LambdasStack, Outputs.LambdaSearchArn]
         ApiKeyName: !Ref ApiKeyName
 
   EventBridgeStack:

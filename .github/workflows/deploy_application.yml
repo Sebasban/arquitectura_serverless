@@ -27,6 +27,9 @@ jobs:
       - name: Comprimir codigo lambda update event
         run: zip -j update_event_lambda.py.zip micro-servicios/modificar-evento/update_event_lambda.py
 
+      - name: Comprimir codigo lambda search event
+        run: zip -j search_lambda.py.zip micro-servicios/consultar-evento/search_lambda.py
+
       - name: donde queda el archivo
         run: pwd
 
@@ -40,6 +43,10 @@ jobs:
       - name: Subir codigo lambda events a S3
         run: |
           aws s3 cp events_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
+
+      - name: Subir codigo lambda search a S3
+        run: |
+          aws s3 cp search_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
 
       - name: Subir codigo lambda update a S3
         run: |

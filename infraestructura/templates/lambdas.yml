@@ -174,6 +174,66 @@ Resources:
           REGION: !Ref 'AWS::Region'
           LOG_LEVEL: "INFO"
 
+  ## ROLE PARA UPDATE LAMBDA ##
+  SearchEventLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: LambdaSearchEventRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaLogsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+          # DynamoDB Access
+              - Effect: 'Allow'
+                Action:
+                  - 'dynamodb:Query'
+                  - 'dynamodb:Scan'
+                  - 'dynamodb:GetItem' 
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${EventTableName}/index/*"
+
+  ## LOG GROUP PARA UPDATE LAMBDA ##
+  SearchEventLambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: "/aws/lambda/SearchLambda"
+      RetentionInDays: 30
+
+  ## LAMBDA PARA ACTUALIZACIÓN DE EVENTOS ##
+  SearchEventLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    DependsOn: SearchEventLambdaLogGroup
+    Properties:
+      FunctionName: 'SearchEventLambda'
+      Handler: 'search_lambda.lambda_handler'
+      Runtime: python3.12
+      Code:
+        S3Bucket: !Sub "lambda-code-${AWS::AccountId}-${AWS::Region}-${Environment}"
+        S3Key: "scripts_aplication/search_lambda.py.zip"
+      MemorySize: 128
+      Timeout: 20
+      Role: !GetAtt SearchEventLambdaRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref EventTableName
+          REGION: !Ref 'AWS::Region'
+          LOG_LEVEL: "INFO"
+
 Outputs:
   LambdaName:
     Description: Nombre de la función Lambda
@@ -182,6 +242,10 @@ Outputs:
   LambdaArn:
     Description: ARN de la función Lambda
     Value: !GetAtt EventLambdaFunction.Arn
+
+  LambdaSearchArn:
+    Description: ARN de la función Lambda
+    Value: !GetAtt SearchEventLambdaFunction.Arn
 
   LogGroupName:
     Description: Log group de CloudWatch

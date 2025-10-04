@@ -2,7 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: REST API -> Lambda proxy (/event con POST, PUT, DELETE, GET) + API Key
 
 Parameters:
-  LambdaFunctionArn:
+  LambdaArn:
+    Type: String
+  
+  LambdaSearchArn:
     Type: String
 
   ApiKeyName:
@@ -44,7 +47,7 @@ Resources:
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
 
   ApiGatewayMethodEventGet:
     Type: AWS::ApiGateway::Method
@@ -57,7 +60,7 @@ Resources:
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
 
   ApiGatewayMethodEventPut:
     Type: AWS::ApiGateway::Method
@@ -70,7 +73,7 @@ Resources:
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
 
   ApiGatewayMethodEventDelete:
     Type: AWS::ApiGateway::Method
@@ -83,7 +86,27 @@ Resources:
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
+
+  ApiGatewayResourceUser:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: User
+      RestApiId: !Ref ApiGatewayRestApi
+
+  ApiGatewayMethodUsertGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      HttpMethod: GET
+      ResourceId: !Ref ApiGatewayResourceUser
+      RestApiId: !Ref ApiGatewayRestApi
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaSearchArn}/invocations
 
   ApiGatewayDeployment:
     Type: AWS::ApiGateway::Deployment
@@ -92,6 +115,7 @@ Resources:
       - ApiGatewayMethodEventPut
       - ApiGatewayMethodEventDelete
       - ApiGatewayMethodEventGet
+      - ApiGatewayMethodUsertGet
     Properties:
       RestApiId: !Ref ApiGatewayRestApi
       StageName: prod
@@ -124,7 +148,15 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref LambdaFunctionArn
+      FunctionName: !Ref LambdaArn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*
+
+  LambdaInvokePermissionEvent:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaSearchArn
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*
 
