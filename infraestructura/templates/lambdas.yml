@@ -276,7 +276,7 @@ Resources:
   PutUserLambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:
-      LogGroupName: "/aws/lambda/SearchLambda"
+      LogGroupName: "/aws/lambda/PutUserLambda"
       RetentionInDays: 30
 
   ## LAMBDA PARA ACTUALIZACIÓN DE EVENTOS ##
@@ -334,7 +334,7 @@ Resources:
   SendMailLambdaLogGroup:
     Type: 'AWS::Logs::LogGroup'
     Properties:
-      LogGroupName: "/aws/lambda/SearchLambda"
+      LogGroupName: "/aws/lambda/SendEmailLambda"
       RetentionInDays: 30
 
   ## LAMBDA PARA ACTUALIZACIÓN DE EVENTOS ##
