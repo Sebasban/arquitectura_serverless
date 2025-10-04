@@ -367,7 +367,7 @@ Resources:
 
 Outputs:
   LambdaName:
-    Description: Nombre de la función Lambda de eventos
+    Description: Nombre de la función Lambda de eventos 
     Value: !Ref EventLambdaFunction
 
   LambdaArn:
