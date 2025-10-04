@@ -27,4 +27,4 @@ def handler(event, context):
     except table.meta.client.exceptions.ConditionalCheckFailedException:
         return {"statusCode": 404, "body": json.dumps({"message": "not found", "EventId": eid})}
     except Exception as e:
-        return {"statusCode": 500, "body": json.dumps({"message": "error", "error": str(e)})}
+        return {"statusCode": 500, "body": json.dumps({"message": "error", "error": str(e)})} 
