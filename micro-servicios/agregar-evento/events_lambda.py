@@ -47,7 +47,7 @@ def lambda_handler(event, context):
                 Name=schedule_name,
                 ScheduleExpression=f"at({body["EventDate"]})",  # 🕒 FECHA QUEMADA
                 FlexibleTimeWindow={"Mode": "OFF"},
-                Target={
+                Target={ 
                     "Arn": os.environ["UPDATEARNFUNCTION"],
                     "RoleArn": os.environ["SCHEDULEARN"],
                     "Input": json.dumps({"triggered_by": "Lambda A", "EventId": eid})
