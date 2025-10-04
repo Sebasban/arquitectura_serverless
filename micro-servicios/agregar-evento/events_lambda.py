@@ -2,9 +2,12 @@ import os
 import json
 import uuid
 import boto3
+import time
+
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["TABLE_NAME"])
+scheduler = boto3.client("scheduler")
 
 def _body(event):
     b = event.get("body")
@@ -48,6 +51,25 @@ def lambda_handler(event, context):
         item = resp.get("Item")
         if not item:
             return {"statusCode": 404, "body": json.dumps({"message": "not found", "EventId": eid})}
+        try:
+            schedule_name = f"test-schedule-{int(time.time())}"
+            scheduler.create_schedule(
+                Name=schedule_name,
+                ScheduleExpression="at(2025-10-03T20:20:00Z)",  # 🕒 FECHA QUEMADA
+                FlexibleTimeWindow={"Mode": "OFF"},
+                Target={
+                    "Arn": "arn:aws:lambda:us-east-1:200093566387:function:UpdateEventLambda",
+                    "RoleArn": "arn:aws:iam::200093566387:role/nequi-root-dev-EventBridg-EventBridgeInvokeLambdaRo-GQSJVZLTaasf",
+                    "Input": json.dumps({"triggered_by": "Lambda A", "EventId": eid})
+                },
+                State="ENABLED",
+                GroupName="default"
+            )
+            item["schedule_created"] = True
+            item["scheduled_for"] = "2025-10-03T22:00:00Z"
+        except Exception as e:
+            item["schedule_created"] = False
+            item["error"] = str(e)
         return {"statusCode": 200, "body": json.dumps(item)}
 
     if method == "PUT":
