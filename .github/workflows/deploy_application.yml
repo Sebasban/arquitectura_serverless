@@ -2,7 +2,7 @@ name: Deploy app con CloudFormation
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
 
 permissions:
   id-token: write
@@ -20,53 +20,53 @@ jobs:
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::200093566387:role/github-deployer-role
-                   
-      - name: Comprimir codigo lambda events
+
+      - name: Comprimir código lambda events
         run: zip -j events_lambda.py.zip micro-servicios/agregar-evento/events_lambda.py
 
-      - name: Comprimir codigo lambda update event
+      - name: Comprimir código lambda update event
         run: zip -j update_event_lambda.py.zip micro-servicios/modificar-evento/update_event_lambda.py
 
-      - name: Comprimir codigo lambda search event
+      - name: Comprimir código lambda search event
         run: zip -j search_lambda.py.zip micro-servicios/consultar-evento/search_lambda.py
 
-      - name: Comprimir codigo lambda publish event
+      - name: Comprimir código lambda publish event
         run: zip -j publish_event.py.zip micro-servicios/enviar-correo/publish_event.py
 
-      - name: Comprimir codigo lambda sned email
-        run: zip -j send_main.py.zip micro-servicios/enviar-correo/send_mail.py
+      - name: Comprimir código lambda send email
+        run: zip -j send_email.py.zip micro-servicios/enviar-correo/send_mail.py
 
-      - name: donde queda el archivo
+      - name: Donde queda el archivo
         run: pwd
 
-      - name: ver archivos
-        run: ls
+      - name: Ver archivos
+        run: ls -la
 
       - name: Subir templates a S3
         run: |
           aws s3 sync infraestructura/templates s3://lambda-code-200093566387-us-east-1-dev/infra_templates --delete
 
-      - name: Subir codigo lambda events a S3
+      - name: Subir código lambda events a S3
         run: |
           aws s3 cp events_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
 
-      - name: Subir codigo lambda search a S3
+      - name: Subir código lambda search a S3
         run: |
           aws s3 cp search_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
 
-      - name: Subir codigo lambda update a S3
+      - name: Subir código lambda update a S3
         run: |
           aws s3 cp update_event_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
 
-     - name: Subir codigo lambda publish a S3 
+      - name: Subir código lambda publish a S3
         run: |
           aws s3 cp publish_event.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
 
-     - name: Subir codigo lambda mail a S3
+      - name: Subir código lambda mail a S3
         run: |
-          aws s3 cp send_mail.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
+          aws s3 cp send_email.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
 
-      - name: Deploy root stack (dev) 
+      - name: Deploy root stack (dev)
         run: |
           aws cloudformation deploy \
             --stack-name nequi-root-dev \
@@ -81,6 +81,4 @@ jobs:
               ScheduleExpression="" \
               UpdateLambdaFunctionArn=arn:aws:lambda:us-east-1:200093566387:function:UpdateEventLambda \
             --capabilities CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changeset
-
-
+            --no-fail-on-empty-chan
