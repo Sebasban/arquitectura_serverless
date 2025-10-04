@@ -60,6 +60,7 @@ Resources:
         Environment: !Ref Environment
         EventTableName: !Ref EventTableName
         SchedulerRoleArn: !GetAtt [EventBridgeStack, Outputs.SchedulerRoleArn]
+        UpdateLambdaFunctionArn: !Ref UpdateLambdaFunctionArn
 
   ApiGatewayStack:
     Type: AWS::CloudFormation::Stack

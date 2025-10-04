@@ -38,8 +38,28 @@ def lambda_handler(event, context):
             "EventDate": body["EventDate"],
             "EventStatus": body["EventStatus"],
             "EventCity": body["EventCity"],
+            "NumberEntries":body["NumberEntries"]
         }
         table.put_item(Item=item)
+        try:
+            schedule_name = f"test-schedule-{int(time.time())}"
+            scheduler.create_schedule(
+                Name=schedule_name,
+                ScheduleExpression=f"at({body["EventDate"]})",  # 🕒 FECHA QUEMADA
+                FlexibleTimeWindow={"Mode": "OFF"},
+                Target={
+                    "Arn": os.environ["UPDATEARNFUNCTION"],
+                    "RoleArn": os.environ["SCHEDULEARN"],
+                    "Input": json.dumps({"triggered_by": "Lambda A", "EventId": eid})
+                },
+                State="ENABLED",
+                GroupName="default"
+            )
+            item["schedule_created"] = True
+            item["scheduled_for"] = f"{body["EventDate"]}"
+        except Exception as e:
+            item["schedule_created"] = False
+            item["error"] = str(e)        
         return {"statusCode": 201, "body": json.dumps({"message": "created", "item": item})}
 
     if method == "GET":
@@ -51,25 +71,6 @@ def lambda_handler(event, context):
         item = resp.get("Item")
         if not item:
             return {"statusCode": 404, "body": json.dumps({"message": "not found", "EventId": eid})}
-        try:
-            schedule_name = f"test-schedule-{int(time.time())}"
-            scheduler.create_schedule(
-                Name=schedule_name,
-                ScheduleExpression="at(2025-10-03T20:20:00Z)",  # 🕒 FECHA QUEMADA
-                FlexibleTimeWindow={"Mode": "OFF"},
-                Target={
-                    "Arn": "arn:aws:lambda:us-east-1:200093566387:function:UpdateEventLambda",
-                    "RoleArn": "arn:aws:iam::200093566387:role/nequi-root-dev-EventBridg-EventBridgeInvokeLambdaRo-GQSJVZLTaasf",
-                    "Input": json.dumps({"triggered_by": "Lambda A", "EventId": eid})
-                },
-                State="ENABLED",
-                GroupName="default"
-            )
-            item["schedule_created"] = True
-            item["scheduled_for"] = "2025-10-03T22:00:00Z"
-        except Exception as e:
-            item["schedule_created"] = False
-            item["error"] = str(e)
         return {"statusCode": 200, "body": json.dumps(item)}
 
     if method == "PUT":

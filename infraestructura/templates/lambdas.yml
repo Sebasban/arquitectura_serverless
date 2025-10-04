@@ -17,6 +17,10 @@ Parameters:
   SchedulerRoleArn:
     Type: String
 
+  UpdateLambdaFunctionArn:
+    Type: String
+    Description: ARN de la Lambda destino a invocar por el Scheduler (p.ej. UpdateEventLambda).
+
 Resources:
 
   ## ROLE PARA EventLambda ##
@@ -102,6 +106,9 @@ Resources:
           TABLE_NAME: !Ref EventTableName
           REGION: !Ref 'AWS::Region'
           LOG_LEVEL: "INFO"
+          SCHEDULEARN: !Ref SchedulerRoleArn
+          UPDATEARNFUNCTION: !Ref UpdateLambdaFunctionArn
+
 
   ## ROLE PARA UPDATE LAMBDA ##
   UpdateEventLambdaRole:
