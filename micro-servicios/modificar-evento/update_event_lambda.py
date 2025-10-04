@@ -19,7 +19,7 @@ def lambda_handler(event, context):
             Key={"EventId": eid},
             UpdateExpression="SET #f = :v",
             ExpressionAttributeNames={"#f": "EventStatus"},
-            ExpressionAttributeValues={":v": "No disponible"},
+            ExpressionAttributeValues={":v": "No disponible"}, 
             ConditionExpression="attribute_exists(EventId)",
             ReturnValues="ALL_NEW",
         )
