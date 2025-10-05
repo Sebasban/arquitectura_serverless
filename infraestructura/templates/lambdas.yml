@@ -21,6 +21,10 @@ Parameters:
     Type: String
     Description: ARN de la Lambda destino a invocar por el Scheduler (p.ej. UpdateEventLambda).
 
+  QueueMailsBuyArn:
+    Type: String
+    Description: Arn de la cola de sqs
+
 Resources:
 
   ## ROLE PARA EventLambda ##
@@ -270,7 +274,7 @@ Resources:
                 Action:
                   - sqs:SendMessage
                 Resource:
-                  - !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
+                  - !Ref QueueMailsBuyArn
 
   ## LOG GROUP PARA UPDATE LAMBDA ##
   PutUserLambdaLogGroup:
@@ -323,7 +327,7 @@ Resources:
                   - sqs:GetQueueAttributes
                   - sqs:ChangeMessageVisibility
                 Resource:
-                  - !Sub arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy
+                  - !GetAtt QueueMailsBuyArn
               - Effect: Allow
                 Action:
                   - ses:SendEmail #Sin adjuntos
@@ -356,15 +360,6 @@ Resources:
           TABLE_NAME: !Ref EventTableName
           REGION: !Ref 'AWS::Region'
           LOG_LEVEL: "INFO"
-
-  MyEventSourceMapping:
-    Type: AWS::Lambda::EventSourceMapping
-    Properties:
-      EventSourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:QueueMailsBuy" 
-      FunctionName: !Ref SendMailLambdaFunction
-
-      BatchSize: 10
-      MaximumBatchingWindowInSeconds: 0 
 
 Outputs:
   LambdaName:

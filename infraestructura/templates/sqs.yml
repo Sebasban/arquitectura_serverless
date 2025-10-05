@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: SQS
+
+
+Parameters:
+  ProjectName:
+    Type: String
+
+Resources:
+  QueueMailsBuy:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "QueueMailsBuy"
+      VisibilityTimeout: 60           # (opcional) > timeout de tu Lambda
+      MessageRetentionPeriod: 1209600 # (opcional) 14 días
+
+Outputs:
+  QueueMailsBuyName:
+    Description: Nombre de la cola de sqs
+    Value: !Ref QueueMailsBuy
+
+  QueueMailsBuyArn:
+    Description: ARN de la cola de sqs
+    Value: !GetAtt QueueMailsBuy.Arn

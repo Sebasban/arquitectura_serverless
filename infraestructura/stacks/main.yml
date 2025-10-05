@@ -54,12 +54,14 @@ Resources:
     DependsOn:
       - DynamoDBStack
       - EventBridgeStack
+      - SQSTack
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/lambdas.yml"
       Parameters:
         Environment: !Ref Environment
         EventTableName: !Ref EventTableName
         SchedulerRoleArn: !GetAtt [EventBridgeStack, Outputs.SchedulerRoleArn]
+        QueueMailsBuyArn: !GetAtt [SQSTack, Outputs.QueueMailsBuyArn]
         UpdateLambdaFunctionArn: !Ref UpdateLambdaFunctionArn
 
   ApiGatewayStack:
@@ -78,6 +80,15 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/eventbridge.yml"
+      Parameters:
+        UpdateLambdaFunctionArn: !Ref UpdateLambdaFunctionArn
+        ScheduleExpression: ""                 # <-- vacío => NO crea el Scheduler
+        InputPayload: '{"source":"cfn"}'       # opcional
+
+  SQSTack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "${TemplatesBaseUrl}/sqs.yml"
       Parameters:
         UpdateLambdaFunctionArn: !Ref UpdateLambdaFunctionArn
         ScheduleExpression: ""                 # <-- vacío => NO crea el Scheduler
