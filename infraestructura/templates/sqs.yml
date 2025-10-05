@@ -6,7 +6,7 @@ Resources:
   QueueMailsBuy:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "QueueMailsBuy"
+      QueueName: "QueueMailsBuy"
       VisibilityTimeout: 60           # (opcional) > timeout de tu Lambda
       MessageRetentionPeriod: 1209600 # (opcional) 14 días
 
