@@ -95,10 +95,10 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
-      PathPart: User
+      PathPart: user
       RestApiId: !Ref ApiGatewayRestApi
 
-  ApiGatewayMethodUsertGet:
+  ApiGatewayMethodUserGet:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
@@ -111,7 +111,7 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaSearchArn}/invocations
 
-  ApiGatewayMethodUsertPut:
+  ApiGatewayMethodUserPut:
     Type: AWS::ApiGateway::Method
     Properties:
       AuthorizationType: NONE
@@ -131,8 +131,8 @@ Resources:
       - ApiGatewayMethodEventPut
       - ApiGatewayMethodEventDelete
       - ApiGatewayMethodEventGet
-      - ApiGatewayMethodUsertGet
-      - ApiGatewayMethodUsertPut
+      - ApiGatewayMethodUserGet
+      - ApiGatewayMethodUserPut
     Properties:
       RestApiId: !Ref ApiGatewayRestApi
       StageName: prod
@@ -177,13 +177,13 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*
 
-LambdaInvokePermissionUserPut:
-  Type: AWS::Lambda::Permission
-  Properties:
-    Action: lambda:InvokeFunction
-    FunctionName: !Ref LambdaPutUserArn
-    Principal: apigateway.amazonaws.com
-    SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*
+  LambdaInvokePermissionUserPut:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaPutUserArn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*
 
 
 Outputs:
