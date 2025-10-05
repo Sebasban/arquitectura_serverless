@@ -17,4 +17,4 @@ Outputs:
 
   QueueMailsBuyArn:
     Description: ARN de la cola de sqs
-    Value: !GetAtt QueueMailsBuy.Arn
+    Value: !GetAtt QueueMailsBuy.Arn 
