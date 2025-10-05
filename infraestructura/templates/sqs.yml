@@ -2,10 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: SQS
 
 
-Parameters:
-  ProjectName:
-    Type: String
-
 Resources:
   QueueMailsBuy:
     Type: AWS::SQS::Queue
