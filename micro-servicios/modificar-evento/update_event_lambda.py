@@ -73,7 +73,7 @@ def lambda_handler(event, context):
             ExpressionAttributeNames={"#f": field},
             ExpressionAttributeValues={":v": 'No disponible'},
             ConditionExpression="attribute_exists(EventId)",
-            ReturnValues="ALL_NEW",
+            ReturnValues="ALL_NEW", 
         )
         return {"statusCode": 200, "body": _json_dumps(resp.get("Attributes", {}))}
     except table.meta.client.exceptions.ConditionalCheckFailedException:
