@@ -169,13 +169,22 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*
 
-  LambdaInvokePermissionUser:
+  LambdaInvokePermissionUserSearch:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref LambdaSearchArn
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*
+
+LambdaInvokePermissionUserPut:
+  Type: AWS::Lambda::Permission
+  Properties:
+    Action: lambda:InvokeFunction
+    FunctionName: !Ref LambdaPutUserArn
+    Principal: apigateway.amazonaws.com
+    SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*
+
 
 Outputs:
   ApiGatewayUrl:
