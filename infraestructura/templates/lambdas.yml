@@ -327,7 +327,7 @@ Resources:
                   - sqs:GetQueueAttributes
                   - sqs:ChangeMessageVisibility 
                 Resource:
-                  - !GetAtt QueueMailsBuyArn
+                  - !Ref QueueMailsBuyArn
               - Effect: Allow
                 Action:
                   - ses:SendEmail #Sin adjuntos
