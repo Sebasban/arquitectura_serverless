@@ -29,7 +29,7 @@ def lambda_handler(event, context):
         }
 
     event_name = body["EventName"]
-    entries_requested = int(body["NumberEntries"])
+    entries_requested = int(body["NumberEntries"]) 
 
     # Buscar evento por EventName (índice secundario)
     try:
