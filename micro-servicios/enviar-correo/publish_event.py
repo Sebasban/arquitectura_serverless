@@ -22,14 +22,15 @@ def lambda_handler(event, context):
 
     body = _body(event)
 
-    if "EventName" not in body or "NumberEntries" not in body:
+    if "EventName" not in body or "NumberEntries" not in body or "Email" not in body:
         return {
             "statusCode": 400,
-            "body": json.dumps({"message": "Se requieren 'EventName' y 'NumberEntries'"})
+            "body": json.dumps({"message": "Se requieren 'EventName' y 'NumberEntries' y 'Email'"})
         }
 
     event_name = body["EventName"]
     entries_requested = int(body["NumberEntries"]) 
+    email = str(body["Email"])
 
     # Buscar evento por EventName (índice secundario)
     try:
@@ -88,7 +89,7 @@ def lambda_handler(event, context):
             "EventId": event_item["EventId"],
             "EventName": event_item["EventName"],
             "EntradasCompradas": entries_requested,
-            "EntradasRestantes": remaining_entries
+            "Email": email
         }
 
         response = sqs.send_message(
@@ -112,6 +113,6 @@ def lambda_handler(event, context):
             "eventId": event_item["EventId"],
             "eventName": event_item["EventName"],
             "compradas": entries_requested,
-            "restantes": remaining_entries
+            "restantes": event_item["Email"]
         })
     }
