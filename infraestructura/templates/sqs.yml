@@ -1,20 +1,43 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: SQS
+Description: SQS + Permiso de invocación y event source mapping hacia Lambda
 
+Parameters:
+  SendMailLambdaArn:
+    Type: String
+    Description: ARN de la Lambda que procesará los mensajes de la cola (por ejemplo, la que envía correos)
 
 Resources:
   QueueMailsBuy:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: "QueueMailsBuy"
-      VisibilityTimeout: 60           # (opcional) > timeout de tu Lambda
-      MessageRetentionPeriod: 1209600 # (opcional) 14 días
+      VisibilityTimeout: 60           # segundos (mayor o igual al timeout de la Lambda)
+      MessageRetentionPeriod: 1209600 # 14 días (opcional)
+
+  # 🔹 Permiso para que SQS invoque la Lambda
+  LambdaInvokePermissionSQS:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SendMailLambdaArn
+      Principal: sqs.amazonaws.com
+      SourceArn: !GetAtt QueueMailsBuy.Arn
+
+  # 🔹 Vincular la cola con la Lambda (Event Source Mapping)
+  SQSTriggerLambda:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 10                               # cantidad de mensajes por invocación
+      EventSourceArn: !GetAtt QueueMailsBuy.Arn
+      FunctionName: !Ref SendMailLambdaArn
+      Enabled: true
+      MaximumBatchingWindowInSeconds: 5           # opcional, agrupa mensajes unos segundos
 
 Outputs:
   QueueMailsBuyName:
-    Description: Nombre de la cola de sqs
+    Description: Nombre de la cola SQS
     Value: !Ref QueueMailsBuy
 
   QueueMailsBuyArn:
-    Description: ARN de la cola de sqs
-    Value: !GetAtt QueueMailsBuy.Arn 
+    Description: ARN de la cola SQS
+    Value: !GetAtt QueueMailsBuy.Arn

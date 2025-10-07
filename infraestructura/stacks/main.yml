@@ -33,6 +33,12 @@ Parameters:
   UpdateLambdaFunctionArn:
     Type: String
     Description: ARN de la Lambda destino a invocar por el Scheduler (p.ej. UpdateEventLambda).
+  SendMailLambdaArn:
+    Type: String
+    Description: ARN de la Lambda destino a enviar el correo (p.ej. UpdateEventLambda).
+  SendMailLambdaName:
+    Type: String
+    Description: Nombre de la Lambda destino a enviar el correo (p.ej. UpdateEventLambda).
 
 Resources:
 
@@ -52,9 +58,9 @@ Resources:
   LambdasStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
+      - SQSTack
       - DynamoDBStack
       - EventBridgeStack
-      - SQSTack
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/lambdas.yml"
       Parameters:
@@ -89,3 +95,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/sqs.yml"
+      Patameters: 
+        SendMailLambdaArn: !Ref SendMailLambdaArn
+        SendMailLambdaName: !Ref SendMailLambdaName
