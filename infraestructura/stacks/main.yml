@@ -95,6 +95,6 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/sqs.yml"
-      Patameters: 
+      Parameters: 
         SendMailLambdaArn: !Ref SendMailLambdaArn
         SendMailLambdaName: !Ref SendMailLambdaName
