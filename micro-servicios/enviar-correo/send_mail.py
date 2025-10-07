@@ -61,7 +61,7 @@ def lambda_handler(event, context):
             print(f"✅ Correo enviado a {to_email} | MessageId: {response['MessageId']}")
 
         except Exception as e:
-            print(f"❌ Error procesando mensaje: {str(e)}")
+            print(f"Error procesando mensaje: {str(e)}")
             # Deja que Lambda reintente automáticamente o DLQ lo capture
 
     return {"statusCode": 200, "body": json.dumps({"message": "Mensajes procesados"})}
