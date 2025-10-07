@@ -113,6 +113,6 @@ def lambda_handler(event, context):
             "eventId": event_item["EventId"],
             "eventName": event_item["EventName"],
             "compradas": entries_requested,
-            "restantes": event_item["Email"]
+            "email": email
         })
     }

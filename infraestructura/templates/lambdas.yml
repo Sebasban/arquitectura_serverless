@@ -360,6 +360,7 @@ Resources:
           TABLE_NAME: !Ref EventTableName
           REGION: !Ref 'AWS::Region'
           LOG_LEVEL: "INFO"
+          FROM_EMAIL: "sebastian.buritica.m@gmail.com"
 
 Outputs:
   LambdaName:
