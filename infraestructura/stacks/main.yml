@@ -89,7 +89,7 @@ Resources:
       Parameters:
         UpdateLambdaFunctionArn: !Ref UpdateLambdaFunctionArn
         ScheduleExpression: ""                 # <-- vacío => NO crea el Scheduler
-        InputPayload: '{"source":"cfn"}'       # opcional
+        InputPayload: '{"source":"cfn"}'       # opciona
 
   SQSTack:
     Type: AWS::CloudFormation::Stack
