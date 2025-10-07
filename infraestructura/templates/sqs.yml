@@ -6,6 +6,10 @@ Parameters:
     Type: String
     Description: ARN de la Lambda que procesará los mensajes de la cola (por ejemplo, la que envía correos)
 
+  SendMailLambdaName:
+    Type: String
+    Description: Nombre de la Lambda que procesará los mensajes de la cola (por ejemplo, la que envía correos)
+
 Resources:
   QueueMailsBuy:
     Type: AWS::SQS::Queue
@@ -14,7 +18,7 @@ Resources:
       VisibilityTimeout: 60           # segundos (mayor o igual al timeout de la Lambda)
       MessageRetentionPeriod: 1209600 # 14 días (opcional)
 
-  # 🔹 Permiso para que SQS invoque la Lambda
+  #Permiso para que SQS invoque la Lambda
   LambdaInvokePermissionSQS:
     Type: AWS::Lambda::Permission
     Properties:
@@ -23,7 +27,7 @@ Resources:
       Principal: sqs.amazonaws.com
       SourceArn: !GetAtt QueueMailsBuy.Arn
 
-  # 🔹 Vincular la cola con la Lambda (Event Source Mapping)
+  #Vincular la cola con la Lambda (Event Source Mapping)
   SQSTriggerLambda:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
