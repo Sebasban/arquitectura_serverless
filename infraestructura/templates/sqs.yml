@@ -15,4 +15,4 @@ Resources:
 Outputs:
   QueueMailsBuyArn:
     Description: Nombre de la función Lambda de eventos 
-    Value: !GetAtt QueueMailsBuyArn.arn
+    Value: !GetAtt QueueMailsBuyArn.Arn
