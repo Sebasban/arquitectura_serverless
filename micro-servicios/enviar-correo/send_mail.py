@@ -13,16 +13,29 @@ def lambda_handler(event, context):
     # SQS envía un batch de mensajes en event["Records"]
     for record in event.get("Records", []):
         try:
-            body = record["body"]
+            print("---- RECORD ----")
+            print(json.dumps(record, indent=2))
+            print("----------------")
+
+            # Extraer cuerpo del mensaje
+            body = record.get("body")
             message = json.loads(body)
+
+            # Si el mensaje viene anidado (doble JSON), decodificarlo de nuevo
+            if isinstance(message, dict) and "body" in message and isinstance(message["body"], str):
+                print("Mensaje anidado detectado, decodificando capa interna...")
+                message = json.loads(message["body"])
+
+            print("Mensaje parseado final:", message)
 
             # Extraer campos del mensaje
             to_email = message.get("Email")
             event_name = message.get("EventName", "Evento sin nombre")
-            entradas = message.get("NumberEntries", 0)
+            entradas = (
+                message.get("NumEntries"))
 
             if not to_email:
-                print("No se encontró EmailDestino, se omite el envío.")
+                print("⚠️ No se encontró Email, se omite el envío.")
                 continue
 
             # Construir correo
@@ -53,15 +66,14 @@ def lambda_handler(event, context):
                     "Subject": {"Data": subject, "Charset": "UTF-8"},
                     "Body": {
                         "Text": {"Data": body_text, "Charset": "UTF-8"},
-                        "Html": {"Data": body_html, "Charset": "UTF-8"}
-                    }
-                }
+                        "Html": {"Data": body_html, "Charset": "UTF-8"},
+                    },
+                },
             )
 
-            print(f"✅ Correo enviado a {to_email} | MessageId: {response['MessageId']}")
+            print(f"Correo enviado a {to_email} | MessageId: {response['MessageId']}")
 
         except Exception as e:
             print(f"Error procesando mensaje: {str(e)}")
-            # Deja que Lambda reintente automáticamente o DLQ lo capture
 
     return {"statusCode": 200, "body": json.dumps({"message": "Mensajes procesados"})}
