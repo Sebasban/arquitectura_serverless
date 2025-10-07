@@ -366,7 +366,7 @@ Resources:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
       EventSourceArn: !Ref QueueMailsBuyArn
-      FunctionName: !GetAtt SendMailLambdaFunction.arn   # ARN o nombre funcionan; tú ya pasas el ARN
+      FunctionName: !GetAtt SendMailLambdaFunction.Arn   # ARN o nombre funcionan; tú ya pasas el ARN
       Enabled: true
       BatchSize: 10
       MaximumBatchingWindowInSeconds: 5
