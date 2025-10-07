@@ -92,7 +92,6 @@ Resources:
 
   SQSTack:
     Type: AWS::CloudFormation::Stack
-    DependsOn:
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/sqs.yml"
       Parameters: 
