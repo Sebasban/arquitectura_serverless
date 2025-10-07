@@ -80,7 +80,7 @@ jobs:
               ApiKeyValue="" \
               ScheduleExpression="" \
               SendMailLambdaArn=arn:aws:lambda:us-east-1:200093566387:function:SendMailLambda \
-              SendMailLambdaName=SendMailLambda
+              SendMailLambdaName=SendMailLambda \
               UpdateLambdaFunctionArn=arn:aws:lambda:us-east-1:200093566387:function:UpdateEventLambda \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-chan
