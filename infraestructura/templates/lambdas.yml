@@ -362,6 +362,16 @@ Resources:
           LOG_LEVEL: "INFO"
           FROM_EMAIL: "sebastian.buritica.m@gmail.com"
 
+  SQSTriggerLambda:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt QueueMailsBuy.Arn
+      FunctionName: !GetAtt SendMailLambdaFunction.arn   # ARN o nombre funcionan; tú ya pasas el ARN
+      Enabled: true
+      BatchSize: 10
+      MaximumBatchingWindowInSeconds: 5
+
+
 Outputs:
   LambdaName:
     Description: Nombre de la función Lambda de eventos 
