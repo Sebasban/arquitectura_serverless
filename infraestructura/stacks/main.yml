@@ -58,7 +58,6 @@ Resources:
   LambdasStack:
     Type: AWS::CloudFormation::Stack
     DependsOn:
-      - SQSTack
       - DynamoDBStack
       - EventBridgeStack
     Properties:
@@ -93,6 +92,8 @@ Resources:
 
   SQSTack:
     Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - LambdasStack
     Properties:
       TemplateURL: !Sub "${TemplatesBaseUrl}/sqs.yml"
       Parameters: 
