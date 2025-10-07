@@ -88,7 +88,7 @@ def lambda_handler(event, context):
         message = {
             "EventId": event_item["EventId"],
             "EventName": event_item["EventName"],
-            "NumEntries": entries_requested,
+            "NumberEntries": entries_requested,
             "Email": email
         }
 

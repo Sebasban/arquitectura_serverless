@@ -32,7 +32,7 @@ def lambda_handler(event, context):
             to_email = message.get("Email")
             event_name = message.get("EventName", "Evento sin nombre")
             entradas = (
-                message.get("NumEntries"))
+                message.get("NumberEntries"))
 
             if not to_email:
                 print("⚠️ No se encontró Email, se omite el envío.")
