@@ -11,12 +11,3 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: QueueMailsBuy
-
-  SQSTriggerLambda:
-    Type: AWS::Lambda::EventSourceMapping
-    Properties:
-      EventSourceArn: !GetAtt QueueMailsBuy.Arn
-      FunctionName: !Ref SendMailLambdaArn   # ARN o nombre funcionan; tú ya pasas el ARN
-      Enabled: true
-      BatchSize: 10
-      MaximumBatchingWindowInSeconds: 5
