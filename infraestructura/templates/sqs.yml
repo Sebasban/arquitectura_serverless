@@ -1,44 +1,22 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: SQS + Permiso de invocación y event source mapping hacia Lambda
-
 Parameters:
   SendMailLambdaArn:
     Type: String
-    Description: ARN de la Lambda que procesará los mensajes de la cola (por ejemplo, la que envía correos)
+    Description: ARN de la Lambda que procesa la cola (p. ej. arn:aws:lambda:us-east-1:...:function:SendMailLambda)
   SendMailLambdaName:
     Type: String
-    Description: ARN de la Lambda que procesará los mensajes de la cola (por ejemplo, la que envía correos)
+    Description: Nombre de la Lambda (p. ej. SendMailLambda)  # (corrige la descripción si decía ARN)
 
 Resources:
   QueueMailsBuy:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: QueueMailsBuy
-      VisibilityTimeout: 60           # >= timeout de la Lambda
-      MessageRetentionPeriod: 1209600 # 14 días
-
-  LambdaInvokePermissionSQS:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref SendMailLambdaArn   # puede ser ARN, nombre o alias
-      Principal: sqs.amazonaws.com
-      SourceArn: !GetAtt QueueMailsBuy.Arn
 
   SQSTriggerLambda:
     Type: AWS::Lambda::EventSourceMapping
     Properties:
-      BatchSize: 10
       EventSourceArn: !GetAtt QueueMailsBuy.Arn
-      FunctionName: !Ref SendMailLambdaArn
+      FunctionName: !Ref SendMailLambdaArn   # ARN o nombre funcionan; tú ya pasas el ARN
       Enabled: true
+      BatchSize: 10
       MaximumBatchingWindowInSeconds: 5
-
-Outputs:
-  QueueMailsBuyName:
-    Description: Nombre de la cola SQS
-    Value: !Ref QueueMailsBuy
-
-  QueueMailsBuyArn:
-    Description: ARN de la cola SQS
-    Value: !GetAtt QueueMailsBuy.Arn
