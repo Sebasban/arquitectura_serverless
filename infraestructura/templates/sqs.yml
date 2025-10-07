@@ -11,3 +11,8 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: QueueMailsBuy
+
+Outputs:
+  QueueMailsBuyArn:
+    Description: Nombre de la función Lambda de eventos 
+    Value: !GetAtt QueueMailsBuyArn.arn
