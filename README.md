@@ -74,6 +74,10 @@ Usa el parámetro `EventName` en la URL:
 ```
 https://czzc0ie9z6.execute-api.us-east-1.amazonaws.com/prod/user?EventName='nombre evento'
 ```
+### Todos los eventos:
+```
+https://czzc0ie9z6.execute-api.us-east-1.amazonaws.com/prod/user
+```
 
 ---
 
@@ -105,6 +109,7 @@ https://czzc0ie9z6.execute-api.us-east-1.amazonaws.com/prod/
 - **Amazon SQS**: gestión de colas de mensajes para desacoplar procesos.
 - **Amazon SES**: envío automático de correos electrónicos.
 - **Python 3.x**: lenguaje principal de las Lambdas.
+- **Amazon EventBridge**: Push que indica a la lambda que debe cambiar a estado 'No disponible' el evento.
 
 ---
 
