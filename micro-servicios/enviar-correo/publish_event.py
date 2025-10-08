@@ -7,7 +7,7 @@ from boto3.dynamodb.conditions import Key
 # Inicializar recursos AWS
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["TABLE_NAME"])
-id_acc = dynamodb.Table(os.environ["ACCOUNT"])
+id_acc = os.environ["ACCOUNT"]
 sqs = boto3.client("sqs")
 queue_url = f'https://sqs.us-east-1.amazonaws.com/{id_acc}/QueueMailsBuy'  # puedes moverlo a env var si prefieres
 
