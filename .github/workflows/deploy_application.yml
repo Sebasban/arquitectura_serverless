@@ -8,6 +8,9 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  ACCOUNT: "200093566387"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -19,7 +22,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
-          role-to-assume: arn:aws:iam::200093566387:role/github-deployer-role
+          role-to-assume: arn:aws:iam::$ACCOUNT:role/github-deployer-role
 
       - name: Comprimir código lambda events
         run: zip -j events_lambda.py.zip micro-servicios/agregar-evento/events_lambda.py
@@ -44,27 +47,27 @@ jobs:
 
       - name: Subir templates a S3
         run: |
-          aws s3 sync infraestructura/templates s3://lambda-code-200093566387-us-east-1-dev/infra_templates --delete
+          aws s3 sync infraestructura/templates s3://lambda-code-$ACCOUNT-us-east-1-dev/infra_templates --delete
 
       - name: Subir código lambda events a S3
         run: |
-          aws s3 cp events_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
+          aws s3 cp events_lambda.py.zip s3://lambda-code-$ACCOUNT-us-east-1-dev/scripts_aplication/
 
       - name: Subir código lambda search a S3
         run: |
-          aws s3 cp search_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
+          aws s3 cp search_lambda.py.zip s3://lambda-code-$ACCOUNT-us-east-1-dev/scripts_aplication/
 
       - name: Subir código lambda update a S3
         run: |
-          aws s3 cp update_event_lambda.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
+          aws s3 cp update_event_lambda.py.zip s3://lambda-code-$ACCOUNT-us-east-1-dev/scripts_aplication/
 
       - name: Subir código lambda publish a S3
         run: |
-          aws s3 cp publish_event.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
+          aws s3 cp publish_event.py.zip s3://lambda-code-$ACCOUNT-us-east-1-dev/scripts_aplication/
 
       - name: Subir código lambda mail a S3
         run: |
-          aws s3 cp send_email.py.zip s3://lambda-code-200093566387-us-east-1-dev/scripts_aplication/
+          aws s3 cp send_email.py.zip s3://lambda-code-$ACCOUNT-us-east-1-dev/scripts_aplication/
 
       - name: Deploy root stack (dev)
         run: |
@@ -72,7 +75,7 @@ jobs:
             --stack-name nequi-root-dev \
             --template-file infraestructura/stacks/main.yml \
             --parameter-overrides \
-              TemplatesBaseUrl="https://s3.amazonaws.com/lambda-code-200093566387-us-east-1-dev/infra_templates" \
+              TemplatesBaseUrl="https://s3.amazonaws.com/lambda-code-$ACCOUNT-us-east-1-dev/infra_templates" \
               Environment=dev \
               Region=us-east-1 \
               EventTableName=EventTable \
@@ -80,8 +83,8 @@ jobs:
               ApiKeyValue="" \
               ScheduleExpression="" \
               FromEmail="sebastian.buritica.m@gmail.com" \
-              SendMailLambdaArn=arn:aws:lambda:us-east-1:200093566387:function:SendMailLambda \
+              SendMailLambdaArn=arn:aws:lambda:us-east-1:$ACCOUNT:function:SendMailLambda \
               SendMailLambdaName=SendMailLambda \
-              UpdateLambdaFunctionArn=arn:aws:lambda:us-east-1:200093566387:function:UpdateEventLambda \
+              UpdateLambdaFunctionArn=arn:aws:lambda:us-east-1:$ACCOUNT:function:UpdateEventLambda \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-chan
