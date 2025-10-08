@@ -25,6 +25,10 @@ Parameters:
     Type: String
     Description: Arn de la cola de sqs
 
+  FromEmail:
+    Type: String
+    Description: Correo electronico del cual saldra el correo
+
 Resources:
 
   ## ROLE PARA EventLambda ##
@@ -360,7 +364,7 @@ Resources:
           TABLE_NAME: !Ref EventTableName
           REGION: !Ref 'AWS::Region'
           LOG_LEVEL: "INFO"
-          FROM_EMAIL: "sebastian.buritica.m@gmail.com"
+          FROM_EMAIL: !Ref FromEmail
 
   SQSTriggerLambda:
     Type: AWS::Lambda::EventSourceMapping
