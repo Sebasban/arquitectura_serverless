@@ -1,0 +1,18 @@
+Parameters:
+  SendMailLambdaArn:
+    Type: String
+    Description: ARN de la Lambda que procesa la cola (p. ej. arn:aws:lambda:us-east-1:...:function:SendMailLambda)
+  SendMailLambdaName:
+    Type: String
+    Description: Nombre de la Lambda (p. ej. SendMailLambda)  # (corrige la descripción si decía ARN
+
+Resources:
+  QueueMailsBuy:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: QueueMailsBuy
+
+Outputs:
+  QueueMailsBuyArn:
+    Description: Nombre de la función Lambda de eventos 
+    Value: !GetAtt QueueMailsBuy.Arn

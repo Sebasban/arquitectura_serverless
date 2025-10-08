@@ -1,0 +1,91 @@
+name: Deploy app con CloudFormation
+
+on:
+  push:
+    branches: [develop]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ACCOUNT: "200093566387"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::${{ env.ACCOUNT }}:role/github-deployer-role
+
+      - name: Comprimir código lambda events
+        run: zip -j events_lambda.py.zip micro-servicios/agregar-evento/events_lambda.py
+
+      - name: Comprimir código lambda update event
+        run: zip -j update_event_lambda.py.zip micro-servicios/modificar-evento/update_event_lambda.py
+
+      - name: Comprimir código lambda search event
+        run: zip -j search_lambda.py.zip micro-servicios/consultar-evento/search_lambda.py
+
+      - name: Comprimir código lambda publish event
+        run: zip -j publish_event.py.zip micro-servicios/enviar-correo/publish_event.py
+
+      - name: Comprimir código lambda send email
+        run: zip -j send_email.py.zip micro-servicios/enviar-correo/send_mail.py
+
+      - name: Donde queda el archivo
+        run: pwd
+
+      - name: Ver archivos
+        run: ls -la
+
+      - name: Subir templates a S3
+        run: |
+          aws s3 sync infraestructura/templates s3://lambda-code-${{ env.ACCOUNT }}-us-east-1-dev/infra_templates --delete
+
+      - name: Subir código lambda events a S3
+        run: |
+          aws s3 cp events_lambda.py.zip s3://lambda-code-${{ env.ACCOUNT }}-us-east-1-dev/scripts_aplication/
+
+      - name: Subir código lambda search a S3
+        run: |
+          aws s3 cp search_lambda.py.zip s3://lambda-code-${{ env.ACCOUNT }}-us-east-1-dev/scripts_aplication/
+
+      - name: Subir código lambda update a S3
+        run: |
+          aws s3 cp update_event_lambda.py.zip s3://lambda-code-${{ env.ACCOUNT }}-us-east-1-dev/scripts_aplication/
+
+      - name: Subir código lambda publish a S3
+        run: |
+          aws s3 cp publish_event.py.zip s3://lambda-code-${{ env.ACCOUNT }}-us-east-1-dev/scripts_aplication/
+
+      - name: Subir código lambda mail a S3
+        run: |
+          aws s3 cp send_email.py.zip s3://lambda-code-${{ env.ACCOUNT }}-us-east-1-dev/scripts_aplication/
+
+      - name: Deploy root stack (dev)
+        run: |
+          aws cloudformation deploy \
+            --stack-name nequi-root-dev \
+            --template-file infraestructura/stacks/main.yml \
+            --parameter-overrides \
+              TemplatesBaseUrl="https://s3.amazonaws.com/lambda-code-${{ env.ACCOUNT }}-us-east-1-dev/infra_templates" \
+              Environment=dev \
+              Region=us-east-1 \
+              ACCOUNT=${{ env.ACCOUNT }} \
+              EventTableName=EventTable \
+              ApiKeyName=events-api-key \
+              ApiKeyValue="" \
+              ScheduleExpression="" \
+              FromEmail="sebastian.buritica.m@gmail.com" \
+              SendMailLambdaArn=arn:aws:lambda:us-east-1:${{ env.ACCOUNT }}:function:SendMailLambda \
+              SendMailLambdaName=SendMailLambda \
+              UpdateLambdaFunctionArn=arn:aws:lambda:us-east-1:${{ env.ACCOUNT }}:function:UpdateEventLambda \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-chan

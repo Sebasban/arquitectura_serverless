@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EventBridge Scheduler opcional que invoca una Lambda destino.
+
+Parameters:
+  UpdateLambdaFunctionArn:
+    Type: String
+    Description: ARN de la Lambda destino a invocar por el Scheduler (p.ej. UpdateEventLambda).
+
+  ScheduleExpression:
+    Type: String
+    Default: ""
+    Description: >
+      Expresión de schedule (ej: cron(0 12 * * ? *), rate(5 minutes)).
+      Si está vacío (""), NO se creará el Scheduler.
+
+  InputPayload:
+    Type: String
+    Default: "{}"
+    Description: JSON de entrada para la Lambda destino.
+
+Conditions:
+  HasScheduleExpression: !Not [!Equals [!Ref ScheduleExpression, ""]]
+
+Resources:
+  # Rol que usará EventBridge Scheduler para invocar la Lambda destino.
+  # (Se crea SIEMPRE para que otra Lambda pueda usarlo al crear el Schedule por código)
+  EventBridgeInvokeLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: AllowInvokeTargetLambda
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Ref UpdateLambdaFunctionArn
+                  - !Sub "${UpdateLambdaFunctionArn}:*"
+
+  # Scheduler opcional: solo se crea si ScheduleExpression != ""
+  UpdateLambdaSchedule:
+    Type: AWS::Scheduler::Schedule
+    Condition: HasScheduleExpression
+    Properties:
+      # Nombre corto y único (<=64). Usamos un sufijo pequeño derivado del StackId.
+      Name:
+        !Sub "update-lambda-schedule-${AWS::StackName}"
+      State: ENABLED
+      FlexibleTimeWindow:
+        Mode: OFF        # ¡Ojo! Debe ser OFF o FLEXIBLE; no booleano
+      ScheduleExpression: !Ref ScheduleExpression
+      Target:
+        Arn:  !Ref UpdateLambdaFunctionArn
+        RoleArn: !GetAtt EventBridgeInvokeLambdaRole.Arn
+        Input: !Ref InputPayload
+
+Outputs:
+  SchedulerRoleArn:
+    Description: ARN del role usado por EventBridge Scheduler para invocar la Lambda.
+    Value: !GetAtt EventBridgeInvokeLambdaRole.Arn
+
+  ScheduleName:
+    Condition: HasScheduleExpression
+    Description: Nombre del schedule (si se creó).
+    Value: !Ref UpdateLambdaSchedule
