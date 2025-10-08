@@ -78,7 +78,7 @@ jobs:
               TemplatesBaseUrl="https://s3.amazonaws.com/lambda-code-${{ env.ACCOUNT }}-us-east-1-dev/infra_templates" \
               Environment=dev \
               Region=us-east-1 \
-              ACCOUNT = ${{ env.ACCOUNT }} \
+              ACCOUNT=${{ env.ACCOUNT }} \
               EventTableName=EventTable \
               ApiKeyName=events-api-key \
               ApiKeyValue="" \
