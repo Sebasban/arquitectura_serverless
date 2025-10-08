@@ -42,6 +42,9 @@ Parameters:
   FromEmail:
     Type: String
     Description: Correo electronico del cual saldra el correo
+  ACCOUNT:
+    Type: String
+    Description: ID de la cuenta
 
 Resources:
 
@@ -73,6 +76,7 @@ Resources:
         QueueMailsBuyArn: !GetAtt [SQSTack, Outputs.QueueMailsBuyArn]
         UpdateLambdaFunctionArn: !Ref UpdateLambdaFunctionArn
         FromEmail: !Ref FromEmail
+        ACCOUNT: !Ref ACCOUNT
 
   ApiGatewayStack:
     Type: AWS::CloudFormation::Stack

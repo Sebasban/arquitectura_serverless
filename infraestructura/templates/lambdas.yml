@@ -29,6 +29,10 @@ Parameters:
     Type: String
     Description: Correo electronico del cual saldra el correo
 
+  ACCOUNT:
+    Type: String
+    Description: ID de la cuenta
+
 Resources:
 
   ## ROLE PARA EventLambda ##
@@ -306,6 +310,8 @@ Resources:
           TABLE_NAME: !Ref EventTableName
           REGION: !Ref 'AWS::Region'
           LOG_LEVEL: "INFO"
+          ACCOUNT: !Ref ACCOUNT
+
 
   ## ROLE PARA UPDATE LAMBDA ##
   SendMailLambdaRole:
